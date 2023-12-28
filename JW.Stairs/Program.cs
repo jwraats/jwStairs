@@ -57,7 +57,7 @@ app.MapPost("/scenes", async (LedDbContext db, ApiScene apiItem) =>
     return Results.Created($"/scenes/{item.Id}", apiItem);
 });
 
-app.MapPost("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId, ApiFrame apiItem) =>
+app.MapPost("/scenes/{sceneId}/frame", async (LedDbContext db, int sceneId, ApiFrame apiItem) =>
 {
     var sceneItem = await db.Scenes.FindAsync(sceneId);
     if (sceneItem == null) return Results.NotFound();
@@ -105,6 +105,57 @@ app.MapPost("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId, Api
     await db.SaveChangesAsync();
 
     return Results.Created($"/scenes/{sceneItem.Id}/frames/{frameItem.OrderNr}", apiItem);
+});
+
+app.MapPost("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId, List<ApiFrame> apiItems) =>
+{
+    var sceneItem = await db.Scenes.FindAsync(sceneId);
+    if (sceneItem == null) return Results.NotFound();
+
+    foreach(var apiItem in apiItems){
+        if(apiItem.Leds == null){
+            apiItem.Leds = new List<ApiLed>();
+            for(int i = 0; i <= ledCount; i++){
+                apiItem.Leds.Add(new ApiLed(){
+                    LedNr = i,
+                    ColorRed = 0,
+                    ColorGreen = 0,
+                    ColorBlue = 0,
+                    ColorAlpha = 0
+                });
+            }
+        }
+
+        if(apiItem.Leds.MinBy(l => l.LedNr)?.LedNr < 0 || apiItem.Leds.MaxBy(l => l.LedNr)?.LedNr > (ledCount -1)){
+            return Results.BadRequest($"LedNr is less then 0 or greater then {ledCount-1} there are only {ledCount} leds.");
+        }
+
+        if(await db.Frames.AnyAsync(f => f.SceneId == sceneId && f.OrderNr == apiItem.OrderNr)){
+            return Results.BadRequest($"Scene {sceneId} already has a ordernr {apiItem.OrderNr}!");
+        }
+
+        Frame frameItem = new Frame(){
+            SceneId = sceneItem.Id,
+            OrderNr = apiItem.OrderNr,
+            WaitTillNextFrame = apiItem.WaitTillNextFrame,
+        };
+        db.Frames.Add(frameItem);
+        await db.SaveChangesAsync();
+
+        foreach(var led in apiItem.Leds){
+            Led ledItem = new Led(){
+                LedNr = led.LedNr,
+                FrameId = frameItem.Id,
+                ColorRed = led.ColorRed,
+                ColorGreen = led.ColorGreen,
+                ColorBlue = led.ColorBlue,
+                ColorAlpha = led.ColorAlpha
+            };
+            db.Leds.Add(ledItem);
+        }
+        await db.SaveChangesAsync();
+    }
+    return Results.CreatedAtRoute($"/scenes/{sceneItem.Id}/frames");
 });
 
 app.MapGet("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId) =>
