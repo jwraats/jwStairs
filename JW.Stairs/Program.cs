@@ -155,7 +155,7 @@ app.MapPost("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId, Lis
         }
         await db.SaveChangesAsync();
     }
-    return Results.CreatedAtRoute($"/scenes/{sceneItem.Id}/frames");
+    return Results.Created($"/scenes/{sceneItem.Id}/frames", null);
 });
 
 app.MapGet("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId) =>
