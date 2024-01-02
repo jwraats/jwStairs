@@ -12,268 +12,304 @@ public enum KnightRiderColor
     Blue
 }
 
+/// <summary>
+/// This type defines several animation examples.
+/// </summary>
+public class Animations
+{
+    private int _ledCount;
+    private Iot.Device.Ws28xx.Ws28xx _ledStrip;
+
     /// <summary>
-    /// This type defines several animation examples.
+    /// Initializes a new instance of the <see cref="Animations"/> class.
     /// </summary>
-    public class Animations
+    /// <param name="ledStrip">The led strip.</param>
+    /// <param name="ledCount">The led count.</param>
+    public Animations(Iot.Device.Ws28xx.Ws28xx ledStrip, int ledCount)
     {
-        private int _ledCount;
-        private Iot.Device.Ws28xx.Ws28xx _ledStrip;
+        _ledStrip = ledStrip;
+        _ledCount = ledCount;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Animations"/> class.
-        /// </summary>
-        /// <param name="ledStrip">The led strip.</param>
-        /// <param name="ledCount">The led count.</param>
-        public Animations(Iot.Device.Ws28xx.Ws28xx ledStrip, int ledCount)
+    /// <summary>
+    /// Gets or sets a value indicating whether the attached strips supports a separate white LED (warmwhite/coldwhite).
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if [supports separate white]; otherwise, <c>false</c>.
+    /// </value>
+    public virtual bool SupportsSeparateWhite { get; set; } = false;
+
+    /// <summary>
+    /// Wipes the selected color.
+    /// </summary>
+    /// <param name="color">The color.</param>
+    public void ColorWipe(Color color)
+    {
+        var img = _ledStrip.Image;
+        for (var i = 0; i < _ledCount; i++)
         {
-            _ledStrip = ledStrip;
-            _ledCount = ledCount;
+            img.SetPixel(i, 0, color);
+            _ledStrip.Update();
+            Thread.Sleep(25);
         }
+    }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether the attached strips supports a separate white LED (warmwhite/coldwhite).
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [supports separate white]; otherwise, <c>false</c>.
-        /// </value>
-        public virtual bool SupportsSeparateWhite { get; set; } = false;
+    public async void PlayScene(List<Frame> frames, CancellationTokenSource tokenSource, int percentage = 100, bool repeat = false)
+    {
+        if (percentage < 1)
+            return;
 
-        /// <summary>
-        /// Wipes the selected color.
-        /// </summary>
-        /// <param name="color">The color.</param>
-        public void ColorWipe(Color color)
+        var token = tokenSource.Token;
+        var img = _ledStrip.Image;
+        while (!token.IsCancellationRequested)
         {
-            var img = _ledStrip.Image;
-            for (var i = 0; i < _ledCount; i++)
+            foreach (var frame in frames)
             {
-                img.SetPixel(i, 0, color);
+                int delayMS = (int)(frame.WaitTillNextFrame * (100.0 / percentage));
+                foreach (var led in frame.Leds)
+                {
+                    img.SetPixel(led.LedNr, 0, Color.FromArgb(led.ColorAlpha, led.ColorRed, led.ColorGreen, led.ColorBlue));
+                }
                 _ledStrip.Update();
-                Thread.Sleep(25);
-            }
-        }
-
-        public void PlayScene(List<Frame> frames, CancellationTokenSource tokenSource, bool repeat){
-            var token = tokenSource.Token;
-            var img = _ledStrip.Image;
-            while (!token.IsCancellationRequested)
-            {
-                foreach(var frame in frames){
-                    foreach(var led in frame.Leds){
-                        img.SetPixel(led.LedNr, 0, Color.FromArgb(led.ColorAlpha, led.ColorRed, led.ColorGreen, led.ColorBlue));
-                    }
-                    _ledStrip.Update();
-                    Thread.Sleep(frame.WaitTillNextFrame);
-                }
-
-                if(!repeat)
-                    tokenSource.Cancel();
-            }
-            SwitchOffLeds();
-        }
-
-        /// <summary>
-        /// Filters the color in regards of the .
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <returns></returns>
-        public Color FilterColor(Color source)
-        {
-            return SupportsSeparateWhite ? Color.FromArgb(0, source.R, source.G, source.B) : source;
-        }
-
-        /// <summary>
-        /// Animation similar to "Knight Rider".
-        /// </summary>
-        /// <param name="token">The token.</param>
-        public async void KnightRider(CancellationToken token, KnightRiderColor color = KnightRiderColor.Red)
-        {
-            var img = _ledStrip.Image;
-            var downDirection = false;
-
-            var beamLength = 15;
-
-            var index = 0;
-            while (!token.IsCancellationRequested)
-            {
-                for (int i = 0; i < _ledCount; i++)
+                try
                 {
-                    img.SetPixel(i, 0, Color.FromArgb(0, 0, 0, 0));
+                    await Task.Delay(delayMS, token).ConfigureAwait(false);
                 }
-
-                if (downDirection)
+                catch (Exception ex)
                 {
-                    for (int i = 0; i <= beamLength; i++)
+                    Console.WriteLine($"Task Delay: {ex.Message}");
+                }
+                if (token.IsCancellationRequested)
+                    break;
+            }
+
+            if (!repeat)
+                tokenSource.Cancel();
+        }
+        SwitchOffLeds();
+    }
+
+    /// <summary>
+    /// Filters the color in regards of the .
+    /// </summary>
+    /// <param name="source">The source.</param>
+    /// <returns></returns>
+    public Color FilterColor(Color source)
+    {
+        return SupportsSeparateWhite ? Color.FromArgb(0, source.R, source.G, source.B) : source;
+    }
+
+    /// <summary>
+    /// Animation similar to "Knight Rider".
+    /// </summary>
+    /// <param name="token">The token.</param>
+    /// <param name="color">The KnightRiderColor; Red / Green / Blue.</param>
+    /// <param name="delayMs">.</param>
+    public async void KnightRider(CancellationToken token, KnightRiderColor color = KnightRiderColor.Red, int percentage = 100)
+    {
+        if (percentage < 1)
+            return;
+
+        int delayMS = (int)(10 * (100.0 / percentage));
+
+        var img = _ledStrip.Image;
+        var downDirection = false;
+
+        var beamLength = 15;
+
+        var index = 0;
+        while (!token.IsCancellationRequested)
+        {
+            for (int i = 0; i < _ledCount; i++)
+            {
+                img.SetPixel(i, 0, Color.FromArgb(0, 0, 0, 0));
+            }
+
+            if (downDirection)
+            {
+                for (int i = 0; i <= beamLength; i++)
+                {
+                    if (index + i < _ledCount && index + i >= 0)
                     {
-                        if (index + i < _ledCount && index + i >= 0)
-                        {
-                            var colorValue = (beamLength - i) * (255 / (beamLength + 1));
+                        var colorValue = (beamLength - i) * (255 / (beamLength + 1));
 
-                            if(color.Equals(KnightRiderColor.Red)){
-                                img.SetPixel(index + i, 0, Color.FromArgb(0, colorValue, 0, 0));
-                            }
-                            else if(color.Equals(KnightRiderColor.Green)){
-                                img.SetPixel(index + i, 0, Color.FromArgb(0, 0, colorValue, 0));
-                            }
-                            else if(color.Equals(KnightRiderColor.Blue)){
-                                img.SetPixel(index + i, 0, Color.FromArgb(0, 0, 0, colorValue));
-                            }
+                        if (color.Equals(KnightRiderColor.Red))
+                        {
+                            img.SetPixel(index + i, 0, Color.FromArgb(0, colorValue, 0, 0));
+                        }
+                        else if (color.Equals(KnightRiderColor.Green))
+                        {
+                            img.SetPixel(index + i, 0, Color.FromArgb(0, 0, colorValue, 0));
+                        }
+                        else if (color.Equals(KnightRiderColor.Blue))
+                        {
+                            img.SetPixel(index + i, 0, Color.FromArgb(0, 0, 0, colorValue));
                         }
                     }
-
-                    index--;
-                    if (index < -beamLength)
-                    {
-                        downDirection = false;
-                        index = 0;
-                    }
                 }
-                else
+
+                index--;
+                if (index < -beamLength)
                 {
-                    for (int i = beamLength - 1; i >= 0; i--)
+                    downDirection = false;
+                    index = 0;
+                }
+            }
+            else
+            {
+                for (int i = beamLength - 1; i >= 0; i--)
+                {
+                    if (index - i >= 0 && index - i < _ledCount)
                     {
-                        if (index - i >= 0 && index - i < _ledCount)
+                        var colorValue = (beamLength - i) * (255 / (beamLength + 1));
+                        if (color.Equals(KnightRiderColor.Red))
                         {
-                            var colorValue = (beamLength - i) * (255 / (beamLength + 1));
-                            if(color.Equals(KnightRiderColor.Red)){
-                                img.SetPixel(index - i, 0, Color.FromArgb(0, colorValue, 0, 0));
-                            }
-                            else if(color.Equals(KnightRiderColor.Green)){
-                                img.SetPixel(index - i, 0, Color.FromArgb(0, 0, colorValue, 0));
-                            }
-                            else if(color.Equals(KnightRiderColor.Blue)){
-                                img.SetPixel(index - i, 0, Color.FromArgb(0, 0, 0, colorValue));
-                            }
+                            img.SetPixel(index - i, 0, Color.FromArgb(0, colorValue, 0, 0));
+                        }
+                        else if (color.Equals(KnightRiderColor.Green))
+                        {
+                            img.SetPixel(index - i, 0, Color.FromArgb(0, 0, colorValue, 0));
+                        }
+                        else if (color.Equals(KnightRiderColor.Blue))
+                        {
+                            img.SetPixel(index - i, 0, Color.FromArgb(0, 0, 0, colorValue));
                         }
                     }
-
-                    index++;
-                    if (index - beamLength >= _ledCount)
-                    {
-                        downDirection = true;
-                        index = _ledCount - 1;
-                    }
                 }
 
-                _ledStrip.Update();
-                await Task.Delay(10).ConfigureAwait(false);
+                index++;
+                if (index - beamLength >= _ledCount)
+                {
+                    downDirection = true;
+                    index = _ledCount - 1;
+                }
+            }
+
+            _ledStrip.Update();
+            try
+            {
+                await Task.Delay(delayMS, token).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Task Delay: {ex.Message}");
             }
         }
+    }
 
-        /// <summary>
-        /// Rainbows the specified count.
-        /// </summary>
-        /// <param name="token">The token.</param>
-        public void Rainbow(CancellationToken token)
+    /// <summary>
+    /// Rainbows the specified count.
+    /// </summary>
+    /// <param name="token">The token.</param>
+    public void Rainbow(CancellationToken token)
+    {
+        RawPixelContainer img = _ledStrip.Image;
+        while (!token.IsCancellationRequested)
         {
-            RawPixelContainer img = _ledStrip.Image;
-            while (!token.IsCancellationRequested)
+            for (var i = 0; i < 255; i++)
             {
-                for (var i = 0; i < 255; i++)
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                for (var j = 0; j < _ledCount; j++)
                 {
                     if (token.IsCancellationRequested)
                     {
                         break;
                     }
 
-                    for (var j = 0; j < _ledCount; j++)
-                    {
-                        if (token.IsCancellationRequested)
-                        {
-                            break;
-                        }
-
-                        img.SetPixel(j, 0, Wheel((i + j) & 255));
-                    }
-
-                    _ledStrip.Update();
-                    Thread.Sleep(25);
+                    img.SetPixel(j, 0, Wheel((i + j) & 255));
                 }
-            }
-        }
 
-        /// <summary>
-        /// Sets the color of the entire strip.
-        /// </summary>
-        /// <param name="color">The color.</param>
-        /// <param name="count">The count.</param>
-        public void SetColor(Color color, int count)
-        {
-            RawPixelContainer img = _ledStrip.Image;
-            for (var i = 0; i < count; i++)
-            {
-                img.SetPixel(i, 0, color);
-            }
-
-            _ledStrip.Update();
-        }
-
-        /// <summary>
-        /// Sets the white value using a percentag.
-        /// </summary>
-        /// <param name="colorPercentage">The color percentage.</param>
-        /// <param name="separateWhite">if set to <c>true</c> [separate white].</param>
-        public void SetWhiteValue(float colorPercentage, bool separateWhite = false)
-        {
-            var color = Color.FromArgb(separateWhite ? (int)(255 * colorPercentage) : 0, !separateWhite ? (int)(255 * colorPercentage) : 0, !separateWhite ? (int)(255 * colorPercentage) : 0, !separateWhite ? (int)(255 * colorPercentage) : 0);
-            SetColor(color, _ledCount);
-        }
-
-        /// <summary>
-        /// Switches the LEDs off.
-        /// </summary>
-        public void SwitchOffLeds()
-        {
-            var img = _ledStrip.Image;
-            img.Clear();
-            _ledStrip.Update();
-        }
-
-        /// <summary>
-        /// Theatre Chase animation.
-        /// </summary>
-        /// <param name="color">The color.</param>
-        /// <param name="blankColor">Color of the blank.</param>
-        /// <param name="token">The token.</param>
-        public void TheatreChase(Color color, Color blankColor, CancellationToken token)
-        {
-            RawPixelContainer img = _ledStrip.Image;
-            while (!token.IsCancellationRequested)
-            {
-                for (var j = 0; j < 3; j++)
-                {
-                    for (var k = 0; k < _ledCount; k += 3)
-                    {
-                        img.SetPixel(j + k, 0, color);
-                    }
-
-                    _ledStrip.Update();
-                    Thread.Sleep(100);
-
-                    for (var k = 0; k < _ledCount; k += 3)
-                    {
-                        img.SetPixel(j + k, 0, blankColor);
-                    }
-                }
-            }
-        }
-
-        private Color Wheel(int position)
-        {
-            if (position < 85)
-            {
-                return Color.FromArgb(0, position * 3, 255 - position * 3, 0);
-            }
-            else if (position < 170)
-            {
-                position -= 85;
-                return Color.FromArgb(0, 255 - position * 3, 0, position * 3);
-            }
-            else
-            {
-                position -= 170;
-                return Color.FromArgb(0, 0, position * 3, 255 - position * 3);
+                _ledStrip.Update();
+                Thread.Sleep(25);
             }
         }
     }
+
+    /// <summary>
+    /// Sets the color of the entire strip.
+    /// </summary>
+    /// <param name="color">The color.</param>
+    /// <param name="count">The count.</param>
+    public void SetColor(Color color, int count)
+    {
+        RawPixelContainer img = _ledStrip.Image;
+        for (var i = 0; i < count; i++)
+        {
+            img.SetPixel(i, 0, color);
+        }
+
+        _ledStrip.Update();
+    }
+
+    /// <summary>
+    /// Sets the white value using a percentag.
+    /// </summary>
+    /// <param name="colorPercentage">The color percentage.</param>
+    /// <param name="separateWhite">if set to <c>true</c> [separate white].</param>
+    public void SetWhiteValue(float colorPercentage, bool separateWhite = false)
+    {
+        var color = Color.FromArgb(separateWhite ? (int)(255 * colorPercentage) : 0, !separateWhite ? (int)(255 * colorPercentage) : 0, !separateWhite ? (int)(255 * colorPercentage) : 0, !separateWhite ? (int)(255 * colorPercentage) : 0);
+        SetColor(color, _ledCount);
+    }
+
+    /// <summary>
+    /// Switches the LEDs off.
+    /// </summary>
+    public void SwitchOffLeds()
+    {
+        var img = _ledStrip.Image;
+        img.Clear();
+        _ledStrip.Update();
+    }
+
+    /// <summary>
+    /// Theatre Chase animation.
+    /// </summary>
+    /// <param name="color">The color.</param>
+    /// <param name="blankColor">Color of the blank.</param>
+    /// <param name="token">The token.</param>
+    public void TheatreChase(Color color, Color blankColor, CancellationToken token)
+    {
+        RawPixelContainer img = _ledStrip.Image;
+        while (!token.IsCancellationRequested)
+        {
+            for (var j = 0; j < 3; j++)
+            {
+                for (var k = 0; k < _ledCount; k += 3)
+                {
+                    img.SetPixel(j + k, 0, color);
+                }
+
+                _ledStrip.Update();
+                Thread.Sleep(100);
+
+                for (var k = 0; k < _ledCount; k += 3)
+                {
+                    img.SetPixel(j + k, 0, blankColor);
+                }
+            }
+        }
+    }
+
+    private Color Wheel(int position)
+    {
+        if (position < 85)
+        {
+            return Color.FromArgb(0, position * 3, 255 - position * 3, 0);
+        }
+        else if (position < 170)
+        {
+            position -= 85;
+            return Color.FromArgb(0, 255 - position * 3, 0, position * 3);
+        }
+        else
+        {
+            position -= 170;
+            return Color.FromArgb(0, 0, position * 3, 255 - position * 3);
+        }
+    }
+}

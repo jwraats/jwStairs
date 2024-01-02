@@ -157,9 +157,10 @@ app.MapGet("/shows", async (LedDbContext db) =>
 });
 
 // !! ========= Animations ========= !!
-app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db, string show, string? color, string? blankColor, bool repeat = false) =>
+app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db, string show, string? color, string? blankColor, int percentage = 100, bool repeat = false) =>
 {
-
+    if (percentage < 1)
+        return Results.BadRequest($"Percentage is lower then 1 {percentage}%!");
     cancellationTokenSource.Cancel();
     effects.SwitchOffLeds();
 
@@ -168,13 +169,13 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
     switch (show)
     {
         case "knightrider":
-            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token));
+            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Red, percentage));
             break;
         case "knightrider_green":
-            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Green));
+            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Green, percentage));
             break;
         case "knightrider_blue":
-            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Blue));
+            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Blue, percentage));
             break;
         case "theatrechase":
             if (color != null && blankColor != null)
@@ -200,7 +201,7 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
             });
             if (scene == null) return Results.NotFound();
 
-            animationTask = Task.Run(() => effects.PlayScene(scene.Frames.OrderBy(o => o.OrderNr).ToList(), cancellationTokenSource, repeat));
+            animationTask = Task.Run(() => effects.PlayScene(scene.Frames.OrderBy(o => o.OrderNr).ToList(), cancellationTokenSource, percentage, repeat));
             break;
     }
 
