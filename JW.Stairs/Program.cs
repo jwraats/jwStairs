@@ -182,11 +182,11 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
                 animationTask = Task.Run(() => effects.TheatreChase(System.Drawing.ColorTranslator.FromHtml($"#{color}"), System.Drawing.ColorTranslator.FromHtml($"#{blankColor}"), cancellationTokenSource.Token));
             break;
         case "rainbow":
-            animationTask = Task.Run(() => effects.Rainbow(cancellationTokenSource.Token));
+            animationTask = Task.Run(() => effects.Rainbow(cancellationTokenSource.Token, percentage));
             break;
         case "colorwipe":
             if (color != null)
-                animationTask = Task.Run(() => effects.ColorWipe(System.Drawing.ColorTranslator.FromHtml($"#{color}")));
+                animationTask = Task.Run(() => effects.ColorWipe(System.Drawing.ColorTranslator.FromHtml($"#{color}"), percentage));
             break;
         case "color":
             if (color != null)

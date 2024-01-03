@@ -43,14 +43,15 @@ public class Animations
     /// Wipes the selected color.
     /// </summary>
     /// <param name="color">The color.</param>
-    public void ColorWipe(Color color)
+    public void ColorWipe(Color color, int percentage = 100)
     {
+        int delayMS = (int)(25 * (100.0 / percentage));
         var img = _ledStrip.Image;
         for (var i = 0; i < _ledCount; i++)
         {
             img.SetPixel(i, 0, color);
             _ledStrip.Update();
-            Thread.Sleep(25);
+            Thread.Sleep(delayMS);
         }
     }
 
@@ -104,7 +105,7 @@ public class Animations
     /// </summary>
     /// <param name="token">The token.</param>
     /// <param name="color">The KnightRiderColor; Red / Green / Blue.</param>
-    /// <param name="delayMs">.</param>
+    /// <param name="percentage">Normal speed is 100%, twice as fast 200% etc..</param>
     public async void KnightRider(CancellationToken token, KnightRiderColor color = KnightRiderColor.Red, int percentage = 100)
     {
         if (percentage < 1)
@@ -201,8 +202,9 @@ public class Animations
     /// Rainbows the specified count.
     /// </summary>
     /// <param name="token">The token.</param>
-    public void Rainbow(CancellationToken token)
+    public async void Rainbow(CancellationToken token, int percentage = 100)
     {
+        int delayMS = (int)(25 * (100.0 / percentage));
         RawPixelContainer img = _ledStrip.Image;
         while (!token.IsCancellationRequested)
         {
@@ -224,7 +226,14 @@ public class Animations
                 }
 
                 _ledStrip.Update();
-                Thread.Sleep(25);
+                try
+                {
+                    await Task.Delay(delayMS, token).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Task Delay: {ex.Message}");
+                }
             }
         }
     }
@@ -272,8 +281,9 @@ public class Animations
     /// <param name="color">The color.</param>
     /// <param name="blankColor">Color of the blank.</param>
     /// <param name="token">The token.</param>
-    public void TheatreChase(Color color, Color blankColor, CancellationToken token)
+    public async void TheatreChase(Color color, Color blankColor, CancellationToken token, int percentage = 100)
     {
+        int delayMS = (int)(25 * (100.0 / percentage));
         RawPixelContainer img = _ledStrip.Image;
         while (!token.IsCancellationRequested)
         {
@@ -285,7 +295,14 @@ public class Animations
                 }
 
                 _ledStrip.Update();
-                Thread.Sleep(100);
+                try
+                {
+                    await Task.Delay(delayMS, token).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Task Delay: {ex.Message}");
+                }
 
                 for (var k = 0; k < _ledCount; k += 3)
                 {
