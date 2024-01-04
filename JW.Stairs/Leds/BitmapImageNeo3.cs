@@ -42,18 +42,40 @@ namespace Iot.Device.Ws28xx
         {
         }
 
-        public override void SetPixel(int x, int y, Color c)
+        public override void SetPixel(int x, int y, Color c, ColorOrder co = ColorOrder.RGB)
         {
             var offset = y * Stride + x * BytesPerPixel;
-            Data[offset++] = _lookup[c.G * BytesPerComponent + 0];
-            Data[offset++] = _lookup[c.G * BytesPerComponent + 1];
-            Data[offset++] = _lookup[c.G * BytesPerComponent + 2];
-            Data[offset++] = _lookup[c.R * BytesPerComponent + 0];
-            Data[offset++] = _lookup[c.R * BytesPerComponent + 1];
-            Data[offset++] = _lookup[c.R * BytesPerComponent + 2];
-            Data[offset++] = _lookup[c.B * BytesPerComponent + 0];
-            Data[offset++] = _lookup[c.B * BytesPerComponent + 1];
-            Data[offset++] = _lookup[c.B * BytesPerComponent + 2];
+            Color _c;
+            switch (co)
+            {
+                case ColorOrder.RBG:
+                    _c = Color.FromArgb(0, c.R, c.B, c.G);
+                    break;
+                case ColorOrder.GRB:
+                    _c = Color.FromArgb(0, c.G, c.R, c.B); 
+                    break;
+                case ColorOrder.GBR:
+                    _c = Color.FromArgb(0, c.G, c.B, c.R); 
+                    break;
+                case ColorOrder.BRG:
+                    _c = Color.FromArgb(0, c.B, c.R, c.G); 
+                    break;
+                case ColorOrder.BGR:
+                    _c = Color.FromArgb(0, c.B, c.G, c.R);
+                    break;
+                default:
+                    _c = c;
+                    break;
+            }
+            Data[offset++] = _lookup[_c.G * BytesPerComponent + 0];
+            Data[offset++] = _lookup[_c.G * BytesPerComponent + 1];
+            Data[offset++] = _lookup[_c.G * BytesPerComponent + 2];
+            Data[offset++] = _lookup[_c.R * BytesPerComponent + 0];
+            Data[offset++] = _lookup[_c.R * BytesPerComponent + 1];
+            Data[offset++] = _lookup[_c.R * BytesPerComponent + 2];
+            Data[offset++] = _lookup[_c.B * BytesPerComponent + 0];
+            Data[offset++] = _lookup[_c.B * BytesPerComponent + 1];
+            Data[offset++] = _lookup[_c.B * BytesPerComponent + 2];
         }
     }
 }

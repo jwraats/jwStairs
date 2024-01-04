@@ -6,6 +6,16 @@ using System.Drawing;
 
 namespace Iot.Device.Ws28xx
 {
+    public enum ColorOrder
+    {
+        RGB,
+        RBG,
+        GRB,
+        GBR,
+        BRG,
+        BGR
+    }
+
     /// <summary>
     /// An abstract class that acts as a data container for device-dependent pixel arrays
     /// </summary>
@@ -63,7 +73,7 @@ namespace Iot.Device.Ws28xx
         /// <param name="x">X coordinate</param>
         /// <param name="y">Y coordinate</param>
         /// <param name="c">Color to set, will be adjusted to the color format of the target hardware</param>
-        public abstract void SetPixel(int x, int y, Color c);
+        public abstract void SetPixel(int x, int y, Color c, ColorOrder co = ColorOrder.RGB);
 
         /// <summary>
         /// Clears the image to specific color

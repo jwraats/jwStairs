@@ -3,12 +3,17 @@ using System.Device.Spi;
 using Iot.Device.Ws28xx;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options => 
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 
 builder.Services.AddDbContext<LedDbContext>();
 var app = builder.Build();
@@ -157,25 +162,29 @@ app.MapGet("/shows", async (LedDbContext db) =>
 });
 
 // !! ========= Animations ========= !!
-app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db, string show, string? color, string? blankColor, int percentage = 100, bool repeat = false) =>
+app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db, string show, string? color, string? blankColor, int percentage = 100, bool repeat = false, ColorOrder colorOrder = ColorOrder.RGB) =>
 {
     if (percentage < 1)
         return Results.BadRequest($"Percentage is lower then 1 {percentage}%!");
     cancellationTokenSource.Cancel();
     effects.SwitchOffLeds();
+    effects.SetColorOrder(colorOrder);
 
     cancellationTokenSource = new CancellationTokenSource();
     Task? animationTask = null;
     switch (show)
     {
         case "knightrider":
-            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Red, percentage));
+            effects.SetColorOrder(ColorOrder.RGB);
+            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, percentage));
             break;
         case "knightrider_green":
-            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Green, percentage));
+            effects.SetColorOrder(ColorOrder.GRB);
+            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, percentage));
             break;
         case "knightrider_blue":
-            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, KnightRiderColor.Blue, percentage));
+            effects.SetColorOrder(ColorOrder.BGR);
+            animationTask = Task.Run(() => effects.KnightRider(cancellationTokenSource.Token, percentage));
             break;
         case "theatrechase":
             if (color != null && blankColor != null)

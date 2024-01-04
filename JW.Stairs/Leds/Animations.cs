@@ -5,18 +5,12 @@ using System.Drawing;
 using Iot.Device.Ws28xx;
 using Microsoft.AspNetCore.Mvc;
 
-public enum KnightRiderColor
-{
-    Red,
-    Green,
-    Blue
-}
-
 /// <summary>
 /// This type defines several animation examples.
 /// </summary>
 public class Animations
 {
+    private ColorOrder _colorOrder = ColorOrder.RGB;
     private int _ledCount;
     private Iot.Device.Ws28xx.Ws28xx _ledStrip;
 
@@ -49,12 +43,27 @@ public class Animations
         var img = _ledStrip.Image;
         for (var i = 0; i < _ledCount; i++)
         {
-            img.SetPixel(i, 0, color);
+            img.SetPixel(i, 0, color, this._colorOrder);
             _ledStrip.Update();
             Thread.Sleep(delayMS);
         }
     }
 
+    /// <summary>
+    /// RGB is normal so if you want to replace the Red value to the Green you can Change to GRB, But if you want to change the Red channel to Blue You shouold do GBR
+    /// </summary>
+    /// <param name="colorOrder">The colorOrder change Red to Green for example by GRB for example.</param>
+    public void SetColorOrder(ColorOrder colorOrder){
+        _colorOrder = colorOrder;
+    }
+
+    /// <summary>
+    /// Play the scene of Frames
+    /// </summary>
+    /// <param name="frames">List of frames that will play.</param>
+    /// <param name="tokenSource">To cancel the Token.</param>
+    /// <param name="percentage">How fast does it need to play 100% is normal less then 100 is slow.. faster is 100+</param>
+    /// <param name="repeat">Is a boolean if repeat is on it will play until tokenSource is cancelled</param>
     public async void PlayScene(List<Frame> frames, CancellationTokenSource tokenSource, int percentage = 100, bool repeat = false)
     {
         if (percentage < 1)
@@ -69,7 +78,7 @@ public class Animations
                 int delayMS = (int)(frame.WaitTillNextFrame * (100.0 / percentage));
                 foreach (var led in frame.Leds)
                 {
-                    img.SetPixel(led.LedNr, 0, Color.FromArgb(led.ColorAlpha, led.ColorRed, led.ColorGreen, led.ColorBlue));
+                    img.SetPixel(led.LedNr, 0, Color.FromArgb(led.ColorAlpha, led.ColorRed, led.ColorGreen, led.ColorBlue), this._colorOrder); ;
                 }
                 _ledStrip.Update();
                 try
@@ -106,7 +115,7 @@ public class Animations
     /// <param name="token">The token.</param>
     /// <param name="color">The KnightRiderColor; Red / Green / Blue.</param>
     /// <param name="percentage">Normal speed is 100%, twice as fast 200% etc..</param>
-    public async void KnightRider(CancellationToken token, KnightRiderColor color = KnightRiderColor.Red, int percentage = 100)
+    public async void KnightRider(CancellationToken token, int percentage = 100)
     {
         if (percentage < 1)
             return;
@@ -134,18 +143,7 @@ public class Animations
                     {
                         var colorValue = (beamLength - i) * (255 / (beamLength + 1));
 
-                        if (color.Equals(KnightRiderColor.Red))
-                        {
-                            img.SetPixel(index + i, 0, Color.FromArgb(0, colorValue, 0, 0));
-                        }
-                        else if (color.Equals(KnightRiderColor.Green))
-                        {
-                            img.SetPixel(index + i, 0, Color.FromArgb(0, 0, colorValue, 0));
-                        }
-                        else if (color.Equals(KnightRiderColor.Blue))
-                        {
-                            img.SetPixel(index + i, 0, Color.FromArgb(0, 0, 0, colorValue));
-                        }
+                        img.SetPixel(index + i, 0, Color.FromArgb(0, colorValue, 0, 0), this._colorOrder);
                     }
                 }
 
@@ -163,18 +161,7 @@ public class Animations
                     if (index - i >= 0 && index - i < _ledCount)
                     {
                         var colorValue = (beamLength - i) * (255 / (beamLength + 1));
-                        if (color.Equals(KnightRiderColor.Red))
-                        {
-                            img.SetPixel(index - i, 0, Color.FromArgb(0, colorValue, 0, 0));
-                        }
-                        else if (color.Equals(KnightRiderColor.Green))
-                        {
-                            img.SetPixel(index - i, 0, Color.FromArgb(0, 0, colorValue, 0));
-                        }
-                        else if (color.Equals(KnightRiderColor.Blue))
-                        {
-                            img.SetPixel(index - i, 0, Color.FromArgb(0, 0, 0, colorValue));
-                        }
+                        img.SetPixel(index - i, 0, Color.FromArgb(0, colorValue, 0, 0), this._colorOrder);
                     }
                 }
 
@@ -222,7 +209,7 @@ public class Animations
                         break;
                     }
 
-                    img.SetPixel(j, 0, Wheel((i + j) & 255));
+                    img.SetPixel(j, 0, Wheel((i + j) & 255), this._colorOrder);
                 }
 
                 _ledStrip.Update();
@@ -248,7 +235,7 @@ public class Animations
         RawPixelContainer img = _ledStrip.Image;
         for (var i = 0; i < count; i++)
         {
-            img.SetPixel(i, 0, color);
+            img.SetPixel(i, 0, color, this._colorOrder);
         }
 
         _ledStrip.Update();
@@ -291,7 +278,7 @@ public class Animations
             {
                 for (var k = 0; k < _ledCount; k += 3)
                 {
-                    img.SetPixel(j + k, 0, color);
+                    img.SetPixel(j + k, 0, color, this._colorOrder);
                 }
 
                 _ledStrip.Update();
@@ -306,7 +293,7 @@ public class Animations
 
                 for (var k = 0; k < _ledCount; k += 3)
                 {
-                    img.SetPixel(j + k, 0, blankColor);
+                    img.SetPixel(j + k, 0, blankColor, this._colorOrder);
                 }
             }
         }
