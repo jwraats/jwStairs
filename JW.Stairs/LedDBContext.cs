@@ -8,8 +8,8 @@ public class Scene
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
-    public string Name { get; set; }
-    public List<Frame> Frames { get; set; }
+    public required string Name { get; set; }
+    public List<Frame> Frames { get; set; } = [];
 }
 
 public class Frame
@@ -17,11 +17,11 @@ public class Frame
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
-    public int OrderNr {get;set;}
+    public int OrderNr { get; set; }
     public int SceneId { get; set; }
     public int WaitTillNextFrame { get; set; }
-    public Scene Scene { get; set; }
-    public List<Led> Leds { get; set; }
+    public Scene Scene { get; set; } = null!;
+    public List<Led> Leds { get; set; } = [];
 }
 
 public class Led
@@ -35,7 +35,7 @@ public class Led
     public int ColorGreen { get; set; }
     public int ColorBlue { get; set; }
     public int ColorAlpha { get; set; }
-    public Frame Frame { get; set; }
+    public Frame Frame { get; set; } = null!;
 }
 
 public class LedDbContext : DbContext

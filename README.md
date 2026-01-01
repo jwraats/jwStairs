@@ -106,3 +106,21 @@ The API provides endpoints for LED control and scene management. Access the Swag
 
 - **SPI Data Transfer Error**:
   If you encounter the error `Error 90 performing SPI data transfer`, increase the SPI buffer size by adding `spidev.bufsiz=65536` to `/boot/cmdline.txt`.
+
+## Breaking Changes (v10.0 Update)
+
+When upgrading from .NET 8.0 to .NET 10.0, be aware of the following:
+
+### Entity Framework Core 10
+- EF tools require `--framework` option for multi-targeted projects
+- SQLite database should continue working without issues
+
+### System.Device.Gpio 4.0
+- Improved support for Raspberry Pi 5 with the new RP1 microcontroller
+- Enhanced board detection for various Pi revisions
+- Older Pi models (Pi Zero 2W) continue to work as before
+
+### Swashbuckle.AspNetCore 10
+- OpenAPI 3.1 support (previously 3.0)
+- Updated Microsoft.OpenApi library internally
+- Swagger UI endpoint remains at `/docs`
