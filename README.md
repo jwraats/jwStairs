@@ -39,7 +39,28 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
    source ~/.bashrc
    ```
 
-### Project Build and Deployment
+### Download from Releases (Recommended)
+
+The easiest way to deploy is to download the pre-built release artifacts:
+
+1. Download the latest release for your Raspberry Pi:
+   ```bash
+   # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
+   
+   # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
+   ```
+
+2. Extract and run:
+   ```bash
+   unzip jw-stairs-linux-arm.zip -d ~/jw-stairs
+   cd ~/jw-stairs
+   chmod +x JW.Stairs
+   ./JW.Stairs --urls=http://0.0.0.0:5001
+   ```
+
+### Build from Source (Alternative)
 
 1. Build and publish the project for Linux ARM (example):
    ```bash
