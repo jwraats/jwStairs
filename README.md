@@ -47,19 +47,27 @@ The easiest way to deploy is to download the pre-built release artifacts:
 1. Download the latest release for your Raspberry Pi:
    ```bash
    # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
+   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bullseye.zip
+   
+   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
    
    # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
+   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bullseye.zip
+   
+   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
    ```
 
-2. Extract for arm
+2. Extract for arm (example with bullseye version)
    ```bash
-   unzip jw-stairs-linux-arm.zip -d ~/jw-stairs
+   unzip jw-stairs-linux-arm-bullseye.zip -d ~/jw-stairs
    ```
    for arm64
    ```bash
-   unzip jw-stairs-linux-arm64.zip -d ~/jw-stairs
+   unzip jw-stairs-linux-arm64-bullseye.zip -d ~/jw-stairs
    ```
    
    and run 

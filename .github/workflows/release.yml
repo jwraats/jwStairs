@@ -8,12 +8,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  # Build with newer GLIBC (ubuntu-latest) for modern systems
+  build-ubuntu:
     runs-on: ubuntu-latest
-    # Build inside Debian Bullseye container for GLIBC 2.31 compatibility
-    # This ensures the binaries work on Raspberry Pi OS (Debian 11) and similar systems
-    container:
-      image: debian:bullseye-slim
 
     strategy:
       matrix:
@@ -23,6 +20,53 @@ jobs:
             artifact-name: jw-stairs-linux-arm
           - runtime: linux-arm64
             artifact-name: jw-stairs-linux-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build and Publish
+        run: |
+          dotnet publish JW.Stairs/JW.Stairs.csproj \
+            --configuration Release \
+            --runtime ${{ matrix.runtime }} \
+            --self-contained true \
+            --output ./publish/${{ matrix.runtime }}
+
+      - name: Create ZIP archive
+        run: |
+          cd ./publish/${{ matrix.runtime }}
+          zip -r ../../${{ matrix.artifact-name }}.zip .
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact-name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build with GLIBC 2.31 (Debian Bullseye) for older systems like Raspberry Pi OS Bullseye
+  build-bullseye:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bullseye-slim
+
+    strategy:
+      matrix:
+        runtime: [linux-arm, linux-arm64]
+        include:
+          - runtime: linux-arm
+            artifact-name: jw-stairs-linux-arm-bullseye
+          - runtime: linux-arm64
+            artifact-name: jw-stairs-linux-arm64-bullseye
 
     steps:
       - name: Install dependencies
