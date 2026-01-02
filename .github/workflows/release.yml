@@ -10,7 +10,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    # Build inside Debian Bullseye container for GLIBC 2.31 compatibility
+    # This ensures the binaries work on Raspberry Pi OS (Debian 11) and similar systems
+    container:
+      image: debian:bullseye-slim
+
     strategy:
       matrix:
         runtime: [linux-arm, linux-arm64]
@@ -21,20 +25,28 @@ jobs:
             artifact-name: jw-stairs-linux-arm64
 
     steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl wget zip libicu67 libssl1.1 git
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
+      - name: Install .NET 10 SDK
+        run: |
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
+        env:
+          DOTNET_ROOT: /usr/share/dotnet
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: /usr/share/dotnet/dotnet restore
 
       - name: Build and Publish
         run: |
-          dotnet publish JW.Stairs/JW.Stairs.csproj \
+          /usr/share/dotnet/dotnet publish JW.Stairs/JW.Stairs.csproj \
             --configuration Release \
             --runtime ${{ matrix.runtime }} \
             --self-contained true \

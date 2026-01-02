@@ -20,6 +20,7 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
 
 - .NET 10.0 (Optional for self-contained deployment)
 - Home Assistant (for integration)
+- GLIBC 2.31 or later (Debian 11 Bullseye, Raspberry Pi OS Bullseye, or compatible)
 
 ## Setup
 
@@ -135,3 +136,10 @@ The API provides endpoints for LED control and scene management. Access the Swag
 
 - **SPI Data Transfer Error**:
   If you encounter the error `Error 90 performing SPI data transfer`, increase the SPI buffer size by adding `spidev.bufsiz=65536` to `/boot/cmdline.txt`.
+
+- **GLIBC Version Error**:
+  If you encounter an error like `GLIBC_2.XX not found`, ensure your Raspberry Pi OS is based on Debian 11 Bullseye or later. You can check your GLIBC version with:
+  ```bash
+  ldd --version
+  ```
+  The release binaries are built for GLIBC 2.31 (Debian 11 Bullseye) compatibility.
