@@ -1,0 +1,206 @@
+curl -X 'POST' \
+  'http://192.168.178.77:5001/scenes/1/frame' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "orderNr": 0,
+  "waitTillNextFrame": 0,
+  "leds": [
+    {
+        "ledNr": 0,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 47,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 48,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 97,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 98,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 147,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 148,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 198,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 199,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 248,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 249,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 298,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 299,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 347,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 348,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 397,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 398,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 451,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 452,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 505,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 506,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 559,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 560,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 609,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 610,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 658,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 659,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    },
+    {
+        "ledNr": 709,
+        "colorRed": 255,
+        "colorGreen": 113,
+        "colorBlue": 67,
+        "colorAlpha": 0
+    }
+]
+}'
