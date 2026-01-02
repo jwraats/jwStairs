@@ -155,17 +155,18 @@ The API provides endpoints for LED control and scene management. Access the Swag
   ldd --version
   ```
   
-  If you have GLIBC 2.31 or earlier (e.g., on Raspberry Pi OS Bullseye/Debian 11), you need to upgrade your OS to Raspberry Pi OS Bookworm (Debian 12) or newer. Follow the official Raspberry Pi OS upgrade guide:
+  If you have GLIBC 2.31 or earlier (e.g., on Raspberry Pi OS Bullseye/Debian 11), you need to upgrade your OS to Raspberry Pi OS Bookworm (Debian 12) or newer. Here is a basic upgrade process:
   ```bash
   # Upgrade from Bullseye to Bookworm
   sudo apt update
   sudo apt full-upgrade
   # Edit /etc/apt/sources.list and replace 'bullseye' with 'bookworm'
   sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list
-  sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list.d/*.list
+  # Update any additional sources if they exist
+  [ -d /etc/apt/sources.list.d ] && sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list.d/*.list 2>/dev/null || true
   sudo apt update
   sudo apt full-upgrade
   sudo reboot
   ```
   
-  **Important**: Always backup your system before performing an OS upgrade.
+  **Important**: Always backup your system before performing an OS upgrade. For complete and official upgrade instructions, refer to the [Raspberry Pi OS upgrade documentation](https://www.raspberrypi.com/documentation/computers/os.html#updating-and-upgrading-raspberry-pi-os).
