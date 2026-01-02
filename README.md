@@ -20,7 +20,7 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
 
 - .NET 10.0 (Optional for self-contained deployment)
 - Home Assistant (for integration)
-- GLIBC 2.31 or later (Debian 11 Bullseye, Raspberry Pi OS Bullseye, or compatible)
+- GLIBC 2.34 or later (Debian 12 Bookworm or newer)
 
 ## Setup
 
@@ -47,17 +47,19 @@ The easiest way to deploy is to download the pre-built release artifacts:
 1. Download the latest release for your Raspberry Pi:
    ```bash
    # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
-   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
+   # Note: Both standard and -bullseye artifacts require GLIBC 2.34 (Debian 12 Bookworm or newer)
+   # The -bullseye naming is for historical/build process reasons only
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bullseye.zip
    
-   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
+   # Standard version (also requires GLIBC 2.34+)
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
    
    # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
-   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
+   # Note: Both standard and -bullseye artifacts require GLIBC 2.34 (Debian 12 Bookworm or newer)
+   # The -bullseye naming is for historical/build process reasons only
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bullseye.zip
    
-   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
+   # Standard version (also requires GLIBC 2.34+)
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
    ```
 
@@ -146,8 +148,24 @@ The API provides endpoints for LED control and scene management. Access the Swag
   If you encounter the error `Error 90 performing SPI data transfer`, increase the SPI buffer size by adding `spidev.bufsiz=65536` to `/boot/cmdline.txt`.
 
 - **GLIBC Version Error**:
-  If you encounter an error like `GLIBC_2.XX not found`, ensure your Raspberry Pi OS is based on Debian 11 Bullseye or later. You can check your GLIBC version with:
+  If you encounter an error like `GLIBC_2.34 not found`, this means your system does not have the required GLIBC version. .NET 10 requires GLIBC 2.34 or later, which is available in Debian 12 (Bookworm) or newer.
+  
+  Check your GLIBC version with:
   ```bash
   ldd --version
   ```
-  The release binaries are built for GLIBC 2.31 (Debian 11 Bullseye) compatibility.
+  
+  If you have GLIBC 2.31 or earlier (e.g., on Raspberry Pi OS Bullseye/Debian 11), you need to upgrade your OS to Raspberry Pi OS Bookworm (Debian 12) or newer. Follow the official Raspberry Pi OS upgrade guide:
+  ```bash
+  # Upgrade from Bullseye to Bookworm
+  sudo apt update
+  sudo apt full-upgrade
+  # Edit /etc/apt/sources.list and replace 'bullseye' with 'bookworm'
+  sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list
+  sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list.d/*.list
+  sudo apt update
+  sudo apt full-upgrade
+  sudo reboot
+  ```
+  
+  **Important**: Always backup your system before performing an OS upgrade.
