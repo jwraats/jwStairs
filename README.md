@@ -20,6 +20,7 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
 
 - .NET 10.0 (Optional for self-contained deployment)
 - Home Assistant (for integration)
+- GLIBC 2.31 or later (Debian 11 Bullseye, Raspberry Pi OS Bullseye, or compatible)
 
 ## Setup
 
@@ -46,19 +47,27 @@ The easiest way to deploy is to download the pre-built release artifacts:
 1. Download the latest release for your Raspberry Pi:
    ```bash
    # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
+   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bullseye.zip
+   
+   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
    
    # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
+   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bullseye.zip
+   
+   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
    ```
 
-2. Extract for arm
+2. Extract for arm (example with bullseye version)
    ```bash
-   unzip jw-stairs-linux-arm.zip -d ~/jw-stairs
+   unzip jw-stairs-linux-arm-bullseye.zip -d ~/jw-stairs
    ```
    for arm64
    ```bash
-   unzip jw-stairs-linux-arm64.zip -d ~/jw-stairs
+   unzip jw-stairs-linux-arm64-bullseye.zip -d ~/jw-stairs
    ```
    
    and run 
@@ -135,3 +144,10 @@ The API provides endpoints for LED control and scene management. Access the Swag
 
 - **SPI Data Transfer Error**:
   If you encounter the error `Error 90 performing SPI data transfer`, increase the SPI buffer size by adding `spidev.bufsiz=65536` to `/boot/cmdline.txt`.
+
+- **GLIBC Version Error**:
+  If you encounter an error like `GLIBC_2.XX not found`, ensure your Raspberry Pi OS is based on Debian 11 Bullseye or later. You can check your GLIBC version with:
+  ```bash
+  ldd --version
+  ```
+  The release binaries are built for GLIBC 2.31 (Debian 11 Bullseye) compatibility.
