@@ -47,21 +47,33 @@ The easiest way to deploy is to download the pre-built release artifacts:
 1. Download the latest release for your Raspberry Pi:
    ```bash
    # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
-   # Requires GLIBC 2.34+ (Debian 12 Bookworm or newer)
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
+   # For Debian 12 Bookworm (GLIBC 2.34+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bookworm.zip
+   
+   # For Debian 13 Trixie (GLIBC 2.38+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-trixie.zip
    
    # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
-   # Requires GLIBC 2.34+ (Debian 12 Bookworm or newer)
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
+   # For Debian 12 Bookworm (GLIBC 2.34+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bookworm.zip
+   
+   # For Debian 13 Trixie (GLIBC 2.38+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-trixie.zip
    ```
 
 2. Extract the downloaded file:
    ```bash
-   # For arm (32-bit)
-   unzip jw-stairs-linux-arm.zip -d ~/jw-stairs
+   # For arm (32-bit) Bookworm
+   unzip jw-stairs-linux-arm-bookworm.zip -d ~/jw-stairs
    
-   # For arm64 (64-bit)
-   unzip jw-stairs-linux-arm64.zip -d ~/jw-stairs
+   # For arm (32-bit) Trixie
+   unzip jw-stairs-linux-arm-trixie.zip -d ~/jw-stairs
+   
+   # For arm64 (64-bit) Bookworm
+   unzip jw-stairs-linux-arm64-bookworm.zip -d ~/jw-stairs
+   
+   # For arm64 (64-bit) Trixie
+   unzip jw-stairs-linux-arm64-trixie.zip -d ~/jw-stairs
    ```
    
 3. Run the application:
