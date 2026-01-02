@@ -171,4 +171,4 @@ The API provides endpoints for LED control and scene management. Access the Swag
   sudo reboot
   ```
   
-  **Important**: Always backup your system before performing an OS upgrade. For complete and official upgrade instructions, refer to the [Raspberry Pi OS upgrade documentation](https://www.raspberrypi.com/documentation/computers/os.html#updating-and-upgrading-raspberry-pi-os).
+  **Important**: Always backup your system before performing an OS upgrade. Upgrading from Bullseye to Bookworm is a risky operation that can potentially break your system. Proceed at your own risk. For complete and official upgrade instructions, refer to the [Raspberry Pi OS upgrade documentation](https://www.raspberrypi.com/documentation/computers/os.html#updating-and-upgrading-raspberry-pi-os).
