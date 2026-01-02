@@ -8,28 +8,121 @@ This document helps you create LED shows and animations for your staircase light
 - **Total Steps:** 14
 - **LED Range:** 0-709
 
+## 🏠 Physical Staircase Layout & Coordinate System
+
+The staircase connects two floors with a curved/spiral section near the top.
+
+### Coordinate System (Standing at bottom, looking up the stairs)
+
+```
+                    Z (Height/Up)
+                    ↑
+                    │
+                    │    
+                    │      ┌─────────────────┐ Step 14 (Top/Upstairs)
+                    │     ╱                   │
+                    │    ╱  Curved section    │ Steps 9-13
+                    │   ╱   (wider steps)     │
+                    │  │                      │
+                    │  │   Straight section   │ Steps 1-8  
+                    │  │                      │
+                    └──┼──────────────────────┼────────→ Y (Depth into stairs)
+                       │                      │
+                       └──────────────────────┘ Step 1 (Bottom/Downstairs)
+                      ╱
+                     ╱
+                    X (Left ← → Right)
+```
+
+### Axis Definitions
+
+| Axis | Direction | Description |
+|------|-----------|-------------|
+| **X** | Left ↔ Right | Looking UP the stairs: Left = wall with handrail, Right = open side with metal railing |
+| **Y** | Front ↔ Back | Depth of each step (LEDs run along Y-axis under the front edge of each step) |
+| **Z** | Down ↔ Up | Height/floor level: Step 1 = ground floor, Step 14 = upstairs |
+
+### Physical Structure
+
+```
+TOP VIEW (looking down from upstairs):
+                                    
+         ╭──────────────╮          
+        ╱   Steps 12-14  ╲         ← Landing/top area
+       │    (straight)    │        
+       │                  │        
+        ╲   Steps 9-11   ╱         ← Curved/wider section (54 LEDs each)
+         ╲   (curved)   ╱          
+          ╲            ╱           
+           │ Step 8   │            
+           │ Step 7   │            
+           │ Step 6   │            ← Straight section
+           │ Step 5   │            
+           │ Step 4   │            
+           │ Step 3   │            
+           │ Step 2   │            
+           │ Step 1   │            ← Bottom (ground floor)
+           └──────────┘            
+          LEFT    RIGHT            
+         (Wall)  (Railing)         
+```
+
+```
+FRONT VIEW (standing at bottom, looking up):
+
+    Step 14  ════════════════════  ← Upstairs (Top)
+    Step 13  ════════════════════  
+    Step 12  ════════════════════  
+    Step 11  ══════════════════════════  ← Wider (curved section)
+    Step 10  ══════════════════════════  
+    Step 9   ══════════════════════════  
+    Step 8   ════════════════════  
+    Step 7   ════════════════════  
+    Step 6   ════════════════════  
+    Step 5   ════════════════════  ← Straight section
+    Step 4   ════════════════════  
+    Step 3   ════════════════════  
+    Step 2   ════════════════════  
+    Step 1   ════════════════════  ← Downstairs (Bottom)
+            │                    │
+          LEFT                RIGHT
+         (Wall)              (Railing)
+    
+    LEDs run horizontally under the front edge of each step
+    Edge LEDs = first & last LED of each step (the side glow)
+```
+
+### LED Strip Orientation
+
+- LEDs are mounted **under the front lip (nosing)** of each step
+- The strip runs from one side to the other along the **Y-axis**
+- **Zigzag wiring pattern**: alternating direction per step to minimize wiring
+  - Odd steps (1,3,5,7,9,11,13): Left → Right
+  - Even steps (2,4,6,8,10,12): Right → Left  
+  - Exception: Step 14 also runs Left → Right
+
 ## 🪜 Stair Step Mapping
 
 Each step has LEDs running along it. The first and last LED of each step are the **edge LEDs** (side lights).
 
 **Step 1 = Bottom (downstairs) → Step 14 = Top (upstairs)**
 
-| Step | LED Start | LED End | LED Count | Left Edge | Right Edge | Position |
-|------|-----------|---------|-----------|-----------|------------|----------|
-| 1    | 0         | 47      | 48        | 0         | 47         | ⬇️ Bottom |
-| 2    | 48        | 97      | 50        | 97        | 48         | |
-| 3    | 98        | 147     | 50        | 98        | 147        | |
-| 4    | 148       | 198     | 51        | 198       | 148        | |
-| 5    | 199       | 248     | 50        | 199       | 248        | |
-| 6    | 249       | 298     | 50        | 298       | 249        | |
-| 7    | 299       | 347     | 49        | 299       | 347        | |
-| 8    | 348       | 397     | 50        | 397       | 348        | |
-| 9    | 398       | 451     | 54        | 398       | 451        | |
-| 10   | 452       | 505     | 54        | 505       | 452        | |
-| 11   | 506       | 559     | 54        | 506       | 559        | |
-| 12   | 560       | 609     | 50        | 609       | 560        | |
-| 13   | 610       | 658     | 49        | 610       | 658        | |
-| 14   | 659       | 709     | 51        | 659       | 709        | ⬆️ Top |
+| Step | LED Start | LED End | LED Count | Left Edge | Right Edge | Section |
+|------|-----------|---------|-----------|-----------|------------|---------|
+| 1    | 0         | 47      | 48        | 0         | 47         | Straight ⬇️ |
+| 2    | 48        | 97      | 50        | 97        | 48         | Straight |
+| 3    | 98        | 147     | 50        | 98        | 147        | Straight |
+| 4    | 148       | 198     | 51        | 198       | 148        | Straight |
+| 5    | 199       | 248     | 50        | 199       | 248        | Straight |
+| 6    | 249       | 298     | 50        | 298       | 249        | Straight |
+| 7    | 299       | 347     | 49        | 299       | 347        | Straight |
+| 8    | 348       | 397     | 50        | 397       | 348        | Straight |
+| 9    | 398       | 451     | 54        | 398       | 451        | Curved 🔄 |
+| 10   | 452       | 505     | 54        | 505       | 452        | Curved |
+| 11   | 506       | 559     | 54        | 506       | 559        | Curved |
+| 12   | 560       | 609     | 50        | 609       | 560        | Top |
+| 13   | 610       | 658     | 49        | 610       | 658        | Top |
+| 14   | 659       | 709     | 51        | 659       | 709        | Top ⬆️ |
 
 ### Quick Reference Arrays
 
