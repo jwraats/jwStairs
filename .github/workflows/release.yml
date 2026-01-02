@@ -8,34 +8,44 @@ permissions:
   contents: write
 
 jobs:
-  # Build with newer GLIBC (ubuntu-latest) for modern systems
-  build-ubuntu:
+  # Build for Debian 12 Bookworm (GLIBC 2.34+)
+  build-bookworm:
     runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm-slim
 
     strategy:
       matrix:
         runtime: [linux-arm, linux-arm64]
         include:
           - runtime: linux-arm
-            artifact-name: jw-stairs-linux-arm
+            artifact-name: jw-stairs-linux-arm-bookworm
           - runtime: linux-arm64
-            artifact-name: jw-stairs-linux-arm64
+            artifact-name: jw-stairs-linux-arm64-bookworm
 
     steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl wget zip git
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
+      - name: Install .NET 10 SDK
+        run: |
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
+        env:
+          DOTNET_ROOT: /usr/share/dotnet
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: /usr/share/dotnet/dotnet restore
 
       - name: Build and Publish
         run: |
-          dotnet publish JW.Stairs/JW.Stairs.csproj \
+          /usr/share/dotnet/dotnet publish JW.Stairs/JW.Stairs.csproj \
             --configuration Release \
             --runtime ${{ matrix.runtime }} \
             --self-contained true \
@@ -53,26 +63,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Build with GLIBC 2.31 (Debian Bullseye) for older systems like Raspberry Pi OS Bullseye
-  build-bullseye:
+  # Build for Debian 13 Trixie (GLIBC 2.38+)
+  build-trixie:
     runs-on: ubuntu-latest
     container:
-      image: debian:bullseye-slim
+      image: debian:trixie-slim
 
     strategy:
       matrix:
         runtime: [linux-arm, linux-arm64]
         include:
           - runtime: linux-arm
-            artifact-name: jw-stairs-linux-arm-bullseye
+            artifact-name: jw-stairs-linux-arm-trixie
           - runtime: linux-arm64
-            artifact-name: jw-stairs-linux-arm64-bullseye
+            artifact-name: jw-stairs-linux-arm64-trixie
 
     steps:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl wget zip libicu67 libssl1.1 git
+          apt-get install -y curl wget zip git
 
       - name: Checkout code
         uses: actions/checkout@v4

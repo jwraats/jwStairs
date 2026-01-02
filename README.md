@@ -20,7 +20,7 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
 
 - .NET 10.0 (Optional for self-contained deployment)
 - Home Assistant (for integration)
-- GLIBC 2.31 or later (Debian 11 Bullseye, Raspberry Pi OS Bullseye, or compatible)
+- GLIBC 2.34 or later (Debian 12 Bookworm or newer)
 
 ## Setup
 
@@ -47,30 +47,36 @@ The easiest way to deploy is to download the pre-built release artifacts:
 1. Download the latest release for your Raspberry Pi:
    ```bash
    # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
-   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bullseye.zip
+   # For Debian 12 Bookworm (GLIBC 2.34+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bookworm.zip
    
-   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
+   # For Debian 13 Trixie (GLIBC 2.38+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-trixie.zip
    
    # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
-   # Use -bullseye version for Raspberry Pi OS Bullseye (Debian 11) or older
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bullseye.zip
+   # For Debian 12 Bookworm (GLIBC 2.34+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bookworm.zip
    
-   # Use standard version for Raspberry Pi OS Bookworm (Debian 12) or newer
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
+   # For Debian 13 Trixie (GLIBC 2.38+)
+   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-trixie.zip
    ```
 
-2. Extract for arm (example with bullseye version)
+2. Extract the downloaded file:
    ```bash
-   unzip jw-stairs-linux-arm-bullseye.zip -d ~/jw-stairs
-   ```
-   for arm64
-   ```bash
-   unzip jw-stairs-linux-arm64-bullseye.zip -d ~/jw-stairs
+   # For arm (32-bit) Bookworm
+   unzip jw-stairs-linux-arm-bookworm.zip -d ~/jw-stairs
+   
+   # For arm (32-bit) Trixie
+   unzip jw-stairs-linux-arm-trixie.zip -d ~/jw-stairs
+   
+   # For arm64 (64-bit) Bookworm
+   unzip jw-stairs-linux-arm64-bookworm.zip -d ~/jw-stairs
+   
+   # For arm64 (64-bit) Trixie
+   unzip jw-stairs-linux-arm64-trixie.zip -d ~/jw-stairs
    ```
    
-   and run 
+3. Run the application:
    ```bash
    cd ~/jw-stairs
    chmod +x JW.Stairs
@@ -146,8 +152,27 @@ The API provides endpoints for LED control and scene management. Access the Swag
   If you encounter the error `Error 90 performing SPI data transfer`, increase the SPI buffer size by adding `spidev.bufsiz=65536` to `/boot/cmdline.txt`.
 
 - **GLIBC Version Error**:
-  If you encounter an error like `GLIBC_2.XX not found`, ensure your Raspberry Pi OS is based on Debian 11 Bullseye or later. You can check your GLIBC version with:
+  If you encounter an error like `GLIBC_2.34 not found`, this means your system does not have the required GLIBC version. .NET 10 requires GLIBC 2.34 or later, which is available in Debian 12 (Bookworm) or newer.
+  
+  Check your GLIBC version with:
   ```bash
   ldd --version
   ```
-  The release binaries are built for GLIBC 2.31 (Debian 11 Bullseye) compatibility.
+  
+  If you have GLIBC 2.31 or earlier (e.g., on Raspberry Pi OS Bullseye/Debian 11), you need to upgrade your OS to Raspberry Pi OS Bookworm (Debian 12) or newer. Here is a basic upgrade process:
+  ```bash
+  # Upgrade from Bullseye to Bookworm
+  sudo apt update
+  sudo apt full-upgrade
+  # Edit /etc/apt/sources.list and replace 'bullseye' with 'bookworm'
+  sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list
+  # Update any additional sources if they exist
+  if [ -d /etc/apt/sources.list.d ]; then
+    find /etc/apt/sources.list.d -name '*.list' -exec sudo sed -i 's/bullseye/bookworm/g' {} +
+  fi
+  sudo apt update
+  sudo apt full-upgrade
+  sudo reboot
+  ```
+  
+  **Important**: Always backup your system before performing an OS upgrade. Upgrading from Bullseye to Bookworm is a risky operation that can potentially break your system. Proceed at your own risk. For complete and official upgrade instructions, refer to the [Raspberry Pi OS upgrade documentation](https://www.raspberrypi.com/documentation/computers/os.html#updating-and-upgrading-raspberry-pi-os).
