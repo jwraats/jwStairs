@@ -47,32 +47,24 @@ The easiest way to deploy is to download the pre-built release artifacts:
 1. Download the latest release for your Raspberry Pi:
    ```bash
    # For Raspberry Pi Zero 2W, Pi 3, or older 32-bit models (linux-arm)
-   # Note: Both standard and -bullseye artifacts require GLIBC 2.34 (Debian 12 Bookworm or newer)
-   # The -bullseye naming is for historical/build process reasons only
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm-bullseye.zip
-   
-   # Standard version (also requires GLIBC 2.34+)
+   # Requires GLIBC 2.34+ (Debian 12 Bookworm or newer)
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm.zip
    
    # For Raspberry Pi 4, Pi 5, or 64-bit models (linux-arm64)
-   # Note: Both standard and -bullseye artifacts require GLIBC 2.34 (Debian 12 Bookworm or newer)
-   # The -bullseye naming is for historical/build process reasons only
-   wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64-bullseye.zip
-   
-   # Standard version (also requires GLIBC 2.34+)
+   # Requires GLIBC 2.34+ (Debian 12 Bookworm or newer)
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
    ```
 
-2. Extract for arm (example with bullseye version)
+2. Extract the downloaded file:
    ```bash
-   unzip jw-stairs-linux-arm-bullseye.zip -d ~/jw-stairs
-   ```
-   for arm64
-   ```bash
-   unzip jw-stairs-linux-arm64-bullseye.zip -d ~/jw-stairs
+   # For arm (32-bit)
+   unzip jw-stairs-linux-arm.zip -d ~/jw-stairs
+   
+   # For arm64 (64-bit)
+   unzip jw-stairs-linux-arm64.zip -d ~/jw-stairs
    ```
    
-   and run 
+3. Run the application:
    ```bash
    cd ~/jw-stairs
    chmod +x JW.Stairs
