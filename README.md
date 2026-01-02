@@ -52,9 +52,17 @@ The easiest way to deploy is to download the pre-built release artifacts:
    wget https://github.com/jwraats/jwStairs/releases/latest/download/jw-stairs-linux-arm64.zip
    ```
 
-2. Extract and run:
+2. Extract for arm
    ```bash
    unzip jw-stairs-linux-arm.zip -d ~/jw-stairs
+   ```
+   for arm64
+   ```bash
+   unzip jw-stairs-linux-arm64.zip -d ~/jw-stairs
+   ```
+   
+   and run 
+   ```bash
    cd ~/jw-stairs
    chmod +x JW.Stairs
    ./JW.Stairs --urls=http://0.0.0.0:5001
