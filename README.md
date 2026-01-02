@@ -163,7 +163,9 @@ The API provides endpoints for LED control and scene management. Access the Swag
   # Edit /etc/apt/sources.list and replace 'bullseye' with 'bookworm'
   sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list
   # Update any additional sources if they exist
-  [ -d /etc/apt/sources.list.d ] && sudo sed -i 's/bullseye/bookworm/g' /etc/apt/sources.list.d/*.list 2>/dev/null || true
+  if [ -d /etc/apt/sources.list.d ]; then
+    find /etc/apt/sources.list.d -name '*.list' -exec sudo sed -i 's/bullseye/bookworm/g' {} +
+  fi
   sudo apt update
   sudo apt full-upgrade
   sudo reboot
