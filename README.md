@@ -40,7 +40,9 @@ The frontend will be available at `http://localhost:5173` and will proxy API req
 
 ### Building for Production
 
-To build the frontend for production:
+The frontend is automatically built and bundled with the backend during the GitHub Actions release workflow. When you download a release, the frontend is already included in the package.
+
+For manual builds:
 
 ```bash
 cd frontend

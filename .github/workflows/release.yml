@@ -27,10 +27,21 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl wget zip git libicu72 libssl3
+          apt-get install -y curl wget zip git libicu72 libssl3 nodejs npm
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Copy frontend to wwwroot
+        run: |
+          mkdir -p JW.Stairs/wwwroot
+          cp -r frontend/dist/. JW.Stairs/wwwroot/
 
       - name: Install .NET 10 SDK
         run: |
@@ -82,10 +93,21 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl wget zip git libicu76 libssl3
+          apt-get install -y curl wget zip git libicu76 libssl3 nodejs npm
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Copy frontend to wwwroot
+        run: |
+          mkdir -p JW.Stairs/wwwroot
+          cp -r frontend/dist/. JW.Stairs/wwwroot/
 
       - name: Install .NET 10 SDK
         run: |
