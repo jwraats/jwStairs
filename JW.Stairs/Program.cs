@@ -4,6 +4,7 @@ using Iot.Device.Ws28xx;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Text.Json.Serialization;
+using System.Threading.Channels;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -58,16 +59,41 @@ app.UseSwaggerUI(options =>
 var jwStairsSettings = new JWStairsSettings();
 builder.Configuration.GetSection("JWStairs").Bind(jwStairsSettings);
 
-SpiConnectionSettings settings = new(0, 0)
-{
-    ClockFrequency = 2_400_000,
-    Mode = SpiMode.Mode0,
-    DataBitLength = 8
-};
-
-using SpiDevice spi = SpiDevice.Create(settings);
 var ledCount = jwStairsSettings.LedCount;
-Animations? effects = new Animations(new Ws2812b(spi, ledCount), ledCount);
+ILedDevice ledDevice;
+LedSimulator? simulator = null;
+Channel<bool>? ledUpdateChannel = null;
+
+if (jwStairsSettings.SimulationMode)
+{
+    // Use the simulator for development/testing without hardware
+    simulator = new LedSimulator(ledCount);
+    ledDevice = simulator;
+    ledUpdateChannel = Channel.CreateBounded<bool>(new BoundedChannelOptions(1)
+    {
+        FullMode = BoundedChannelFullMode.DropOldest
+    });
+    simulator.SetOnUpdateCallback(() =>
+    {
+        ledUpdateChannel.Writer.TryWrite(true);
+    });
+    Console.WriteLine("Running in SIMULATION MODE - LEDs will be displayed in web interface");
+}
+else
+{
+    // Use the real hardware
+    SpiConnectionSettings settings = new(0, 0)
+    {
+        ClockFrequency = 2_400_000,
+        Mode = SpiMode.Mode0,
+        DataBitLength = 8
+    };
+    using SpiDevice spi = SpiDevice.Create(settings);
+    ledDevice = new Ws2812b(spi, ledCount);
+    Console.WriteLine("Running in HARDWARE MODE - controlling real LED strip");
+}
+
+Animations? effects = new Animations(ledDevice, ledCount);
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 app.MapGet("/scenes", async (LedDbContext db) => await db.Scenes.Select(s => new ApiScene() { Id = s.Id, Name = s.Name }).ToListAsync());
@@ -243,6 +269,84 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
 
     return Results.Ok();
 });
+
+// !! ========= Simulator Endpoints ========= !!
+// Check if simulation mode is enabled
+app.MapGet("/simulator/status", () =>
+{
+    return Results.Ok(new { 
+        simulationMode = jwStairsSettings.SimulationMode,
+        ledCount = ledCount
+    });
+});
+
+// Get current LED state (for polling)
+app.MapGet("/leds", () =>
+{
+    if (simulator == null)
+    {
+        return Results.BadRequest("Simulation mode is not enabled. Set SimulationMode to true in appsettings.json");
+    }
+    
+    var colors = simulator.GetLedColors();
+    var result = new List<object>(colors.Length);
+    for (int i = 0; i < colors.Length; i++)
+    {
+        result.Add(new { ledNr = i, r = colors[i].R, g = colors[i].G, b = colors[i].B });
+    }
+    return Results.Ok(result);
+});
+
+// Server-Sent Events endpoint for real-time LED updates
+app.MapGet("/leds/stream", async (HttpContext context, CancellationToken ct) =>
+{
+    if (simulator == null || ledUpdateChannel == null)
+    {
+        context.Response.StatusCode = 400;
+        await context.Response.WriteAsync("Simulation mode is not enabled. Set SimulationMode to true in appsettings.json");
+        return;
+    }
+
+    context.Response.Headers.Append("Content-Type", "text/event-stream");
+    context.Response.Headers.Append("Cache-Control", "no-cache");
+    context.Response.Headers.Append("Connection", "keep-alive");
+
+    // Send initial state
+    var colors = simulator.GetLedColors();
+    var colorData = BuildColorJson(colors);
+    await context.Response.WriteAsync($"data: {colorData}\n\n", ct);
+    await context.Response.Body.FlushAsync(ct);
+
+    // Stream updates
+    try
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await ledUpdateChannel.Reader.ReadAsync(ct);
+            colors = simulator.GetLedColors();
+            colorData = BuildColorJson(colors);
+            await context.Response.WriteAsync($"data: {colorData}\n\n", ct);
+            await context.Response.Body.FlushAsync(ct);
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        // Client disconnected
+    }
+});
+
+string BuildColorJson(LedColor[] colors)
+{
+    var sb = new System.Text.StringBuilder();
+    sb.Append('[');
+    for (int i = 0; i < colors.Length; i++)
+    {
+        if (i > 0) sb.Append(',');
+        sb.Append($"{{\"r\":{colors[i].R},\"g\":{colors[i].G},\"b\":{colors[i].B}}}");
+    }
+    sb.Append(']');
+    return sb.ToString();
+}
 
 // Fallback route for SPA - serve index.html for unmatched routes
 app.MapFallbackToFile("index.html");

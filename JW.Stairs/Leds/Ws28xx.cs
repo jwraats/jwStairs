@@ -9,7 +9,7 @@ namespace Iot.Device.Ws28xx
     /// <summary>
     /// Represents base class for WS28XX LED drivers (i.e. WS2812B or WS2808)
     /// </summary>
-    public class Ws28xx
+    public class Ws28xx : ILedDevice
     {
         /// <summary>
         /// SPI device used for communication with the LED driver
