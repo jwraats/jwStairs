@@ -14,22 +14,26 @@ namespace Iot.Device.Ws28xx
     public class GifGenerator
     {
         // Stair step LED mapping
+        // Zigzag wiring pattern:
+        // - Odd steps (1,3,5,7,9,11,13): Left → Right (reversed = false)
+        // - Even steps (2,4,6,8,10,12): Right → Left (reversed = true)
+        // - Exception: Step 14 also runs Left → Right (reversed = false)
         private static readonly StepInfo[] STEPS = new[]
         {
-            new StepInfo(1, 0, 47, "straight"),
-            new StepInfo(2, 48, 97, "straight"),
-            new StepInfo(3, 98, 147, "straight"),
-            new StepInfo(4, 148, 198, "straight"),
-            new StepInfo(5, 199, 248, "straight"),
-            new StepInfo(6, 249, 298, "straight"),
-            new StepInfo(7, 299, 347, "straight"),
-            new StepInfo(8, 348, 397, "straight"),
-            new StepInfo(9, 398, 451, "curved"),
-            new StepInfo(10, 452, 505, "curved"),
-            new StepInfo(11, 506, 559, "curved"),
-            new StepInfo(12, 560, 609, "top"),
-            new StepInfo(13, 610, 658, "top"),
-            new StepInfo(14, 659, 709, "top")
+            new StepInfo(1, 0, 47, "straight", false),
+            new StepInfo(2, 48, 97, "straight", true),
+            new StepInfo(3, 98, 147, "straight", false),
+            new StepInfo(4, 148, 198, "straight", true),
+            new StepInfo(5, 199, 248, "straight", false),
+            new StepInfo(6, 249, 298, "straight", true),
+            new StepInfo(7, 299, 347, "straight", false),
+            new StepInfo(8, 348, 397, "straight", true),
+            new StepInfo(9, 398, 451, "curved", false),
+            new StepInfo(10, 452, 505, "curved", true),
+            new StepInfo(11, 506, 559, "curved", false),
+            new StepInfo(12, 560, 609, "top", true),
+            new StepInfo(13, 610, 658, "top", false),
+            new StepInfo(14, 659, 709, "top", false)
         };
 
         // Image dimensions
@@ -281,7 +285,11 @@ namespace Iot.Device.Ws28xx
                 
                 for (int ledIdx = 0; ledIdx < ledCount; ledIdx++)
                 {
-                    int ledNr = step.Start + ledIdx;
+                    // For reversed steps (even steps), reverse the LED order for display
+                    // so LEDs appear left-to-right visually while wiring goes right-to-left
+                    int ledNr = step.Reversed 
+                        ? step.End - ledIdx  // Reversed: start from end
+                        : step.Start + ledIdx; // Normal: start from start
                     var color = ledColors.Length > ledNr ? ledColors[ledNr] : new LedColor();
                     
                     int ledX = xOffset + (int)(ledIdx * ledSpacing + ledSpacing / 2);
@@ -325,6 +333,6 @@ namespace Iot.Device.Ws28xx
             return image;
         }
 
-        private record StepInfo(int Step, int Start, int End, string Section);
+        private record StepInfo(int Step, int Start, int End, string Section, bool Reversed);
     }
 }

@@ -3,21 +3,25 @@ import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { getSimulatorStatus, subscribeLedUpdates } from '@/services/api'
 
 // Stair step LED mapping from copilot.md
+// Zigzag wiring pattern:
+// - Odd steps (1,3,5,7,9,11,13): Left → Right (reversed = false)
+// - Even steps (2,4,6,8,10,12): Right → Left (reversed = true)
+// - Exception: Step 14 also runs Left → Right (reversed = false)
 const STEPS = [
-  { step: 1, start: 0, end: 47, count: 48, section: 'straight' },
-  { step: 2, start: 48, end: 97, count: 50, section: 'straight' },
-  { step: 3, start: 98, end: 147, count: 50, section: 'straight' },
-  { step: 4, start: 148, end: 198, count: 51, section: 'straight' },
-  { step: 5, start: 199, end: 248, count: 50, section: 'straight' },
-  { step: 6, start: 249, end: 298, count: 50, section: 'straight' },
-  { step: 7, start: 299, end: 347, count: 49, section: 'straight' },
-  { step: 8, start: 348, end: 397, count: 50, section: 'straight' },
-  { step: 9, start: 398, end: 451, count: 54, section: 'curved' },
-  { step: 10, start: 452, end: 505, count: 54, section: 'curved' },
-  { step: 11, start: 506, end: 559, count: 54, section: 'curved' },
-  { step: 12, start: 560, end: 609, count: 50, section: 'top' },
-  { step: 13, start: 610, end: 658, count: 49, section: 'top' },
-  { step: 14, start: 659, end: 709, count: 51, section: 'top' }
+  { step: 1, start: 0, end: 47, count: 48, section: 'straight', reversed: false },
+  { step: 2, start: 48, end: 97, count: 50, section: 'straight', reversed: true },
+  { step: 3, start: 98, end: 147, count: 50, section: 'straight', reversed: false },
+  { step: 4, start: 148, end: 198, count: 51, section: 'straight', reversed: true },
+  { step: 5, start: 199, end: 248, count: 50, section: 'straight', reversed: false },
+  { step: 6, start: 249, end: 298, count: 50, section: 'straight', reversed: true },
+  { step: 7, start: 299, end: 347, count: 49, section: 'straight', reversed: false },
+  { step: 8, start: 348, end: 397, count: 50, section: 'straight', reversed: true },
+  { step: 9, start: 398, end: 451, count: 54, section: 'curved', reversed: false },
+  { step: 10, start: 452, end: 505, count: 54, section: 'curved', reversed: true },
+  { step: 11, start: 506, end: 559, count: 54, section: 'curved', reversed: false },
+  { step: 12, start: 560, end: 609, count: 50, section: 'top', reversed: true },
+  { step: 13, start: 610, end: 658, count: 49, section: 'top', reversed: false },
+  { step: 14, start: 659, end: 709, count: 51, section: 'top', reversed: false }
 ]
 
 const simulatorStatus = ref(null)
@@ -32,13 +36,28 @@ const stepLeds = computed(() => {
   
   return STEPS.map(step => {
     const leds = []
-    for (let i = step.start; i <= step.end; i++) {
-      const color = ledColors.value[i] || { r: 0, g: 0, b: 0 }
-      leds.push({
-        ledNr: i,
-        color: `rgb(${color.r}, ${color.g}, ${color.b})`,
-        isOn: color.r > 0 || color.g > 0 || color.b > 0
-      })
+    // Build LEDs in display order (always left to right for visual)
+    // For reversed steps (even steps), we need to reverse the LED order
+    if (step.reversed) {
+      // Even steps run Right → Left in wiring, so reverse for display
+      for (let i = step.end; i >= step.start; i--) {
+        const color = ledColors.value[i] || { r: 0, g: 0, b: 0 }
+        leds.push({
+          ledNr: i,
+          color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+          isOn: color.r > 0 || color.g > 0 || color.b > 0
+        })
+      }
+    } else {
+      // Odd steps (and step 14) run Left → Right, display as-is
+      for (let i = step.start; i <= step.end; i++) {
+        const color = ledColors.value[i] || { r: 0, g: 0, b: 0 }
+        leds.push({
+          ledNr: i,
+          color: `rgb(${color.r}, ${color.g}, ${color.b})`,
+          isOn: color.r > 0 || color.g > 0 || color.b > 0
+        })
+      }
     }
     return {
       ...step,
