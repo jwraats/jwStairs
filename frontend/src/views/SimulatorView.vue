@@ -87,8 +87,8 @@ async function connect() {
       return
     }
     
-    // Initialize LED colors array
-    ledColors.value = new Array(simulatorStatus.value.ledCount).fill({ r: 0, g: 0, b: 0 })
+    // Initialize LED colors array - use Array.from to create unique objects
+    ledColors.value = Array.from({ length: simulatorStatus.value.ledCount }, () => ({ r: 0, g: 0, b: 0 }))
     
     // Subscribe to LED updates
     eventSource.value = subscribeLedUpdates(

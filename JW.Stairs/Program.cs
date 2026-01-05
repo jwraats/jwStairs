@@ -88,7 +88,7 @@ else
         Mode = SpiMode.Mode0,
         DataBitLength = 8
     };
-    using SpiDevice spi = SpiDevice.Create(settings);
+    SpiDevice spi = SpiDevice.Create(settings);
     ledDevice = new Ws2812b(spi, ledCount);
     Console.WriteLine("Running in HARDWARE MODE - controlling real LED strip");
 }
@@ -347,6 +347,80 @@ string BuildColorJson(LedColor[] colors)
     sb.Append(']');
     return sb.ToString();
 }
+
+// !! ========= GIF Preview Endpoints ========= !!
+var gifGenerator = new GifGenerator();
+
+// Generate GIF preview for a built-in animation
+app.MapGet("/animation/{show}/preview", async (HttpContext context, string show, string? color, string? blankColor, int frames = 60, int delay = 50) =>
+{
+    System.Drawing.Color? drawingColor = null;
+    System.Drawing.Color? drawingBlankColor = null;
+    
+    if (!string.IsNullOrEmpty(color))
+    {
+        try { drawingColor = System.Drawing.ColorTranslator.FromHtml($"#{color}"); }
+        catch { }
+    }
+    
+    if (!string.IsNullOrEmpty(blankColor))
+    {
+        try { drawingBlankColor = System.Drawing.ColorTranslator.FromHtml($"#{blankColor}"); }
+        catch { }
+    }
+    
+    try
+    {
+        var gifBytes = await gifGenerator.GenerateAnimationPreviewAsync(
+            show, 
+            ledCount, 
+            frames, 
+            delay, 
+            drawingColor, 
+            drawingBlankColor,
+            context.RequestAborted);
+        
+        context.Response.ContentType = "image/gif";
+        context.Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        await context.Response.Body.WriteAsync(gifBytes);
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Error generating GIF: {ex.Message}");
+    }
+});
+
+// Generate GIF preview for a custom scene
+app.MapGet("/scenes/{sceneId}/preview", async (HttpContext context, LedDbContext db, int sceneId, int maxFrames = 100, double speed = 1.0) =>
+{
+    var scene = await db.Scenes
+        .Include(s => s.Frames)
+        .ThenInclude(f => f.Leds)
+        .FirstOrDefaultAsync(s => s.Id == sceneId);
+    
+    if (scene == null)
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Scene not found");
+        return;
+    }
+    
+    try
+    {
+        var frames = scene.Frames.OrderBy(f => f.OrderNr).ToList();
+        var gifBytes = gifGenerator.GenerateGif(frames, maxFrames, speed);
+        
+        context.Response.ContentType = "image/gif";
+        context.Response.Headers.Append("Cache-Control", "public, max-age=3600");
+        await context.Response.Body.WriteAsync(gifBytes);
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Error generating GIF: {ex.Message}");
+    }
+});
 
 // Fallback route for SPA - serve index.html for unmatched routes
 app.MapFallbackToFile("index.html");
