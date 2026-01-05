@@ -12,6 +12,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <nav class="main-nav">
         <RouterLink to="/">Animations</RouterLink>
         <RouterLink to="/scenes">Scenes</RouterLink>
+        <RouterLink to="/simulator">Simulator</RouterLink>
       </nav>
     </header>
 

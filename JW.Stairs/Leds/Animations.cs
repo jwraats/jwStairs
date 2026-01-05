@@ -12,14 +12,14 @@ public class Animations
 {
     private ColorOrder _colorOrder = ColorOrder.RGB;
     private int _ledCount;
-    private Iot.Device.Ws28xx.Ws28xx _ledStrip;
+    private Iot.Device.Ws28xx.ILedDevice _ledStrip;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Animations"/> class.
     /// </summary>
     /// <param name="ledStrip">The led strip.</param>
     /// <param name="ledCount">The led count.</param>
-    public Animations(Iot.Device.Ws28xx.Ws28xx ledStrip, int ledCount)
+    public Animations(Iot.Device.Ws28xx.ILedDevice ledStrip, int ledCount)
     {
         _ledStrip = ledStrip;
         _ledCount = ledCount;

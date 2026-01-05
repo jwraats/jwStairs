@@ -19,6 +19,11 @@ const router = createRouter({
       name: 'scene-detail',
       component: () => import('../views/SceneDetailView.vue'),
     },
+    {
+      path: '/simulator',
+      name: 'simulator',
+      component: () => import('../views/SimulatorView.vue'),
+    },
   ],
 })
 

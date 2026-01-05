@@ -94,3 +94,33 @@ export async function playAnimation(show, options = {}) {
   const response = await fetch(url)
   return handleResponse(response)
 }
+
+// Simulator API
+export async function getSimulatorStatus() {
+  const response = await fetch(`${API_BASE}/simulator/status`)
+  return handleResponse(response)
+}
+
+export async function getLeds() {
+  const response = await fetch(`${API_BASE}/leds`)
+  return handleResponse(response)
+}
+
+export function subscribeLedUpdates(onUpdate, onError) {
+  const eventSource = new EventSource(`${API_BASE}/leds/stream`)
+  
+  eventSource.onmessage = (event) => {
+    try {
+      const colors = JSON.parse(event.data)
+      onUpdate(colors)
+    } catch (e) {
+      console.error('Failed to parse LED data:', e)
+    }
+  }
+  
+  eventSource.onerror = (error) => {
+    if (onError) onError(error)
+  }
+  
+  return eventSource
+}

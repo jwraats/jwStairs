@@ -420,8 +420,147 @@ function createFrame(orderNr, waitTillNextFrame, leds) {
 
 ---
 
+## 🎮 Simulator Mode
+
+The simulator allows you to test animations without physical LED hardware. Enable it by setting `SimulationMode` to `true` in `appsettings.json`:
+
+```json
+{
+  "JWStairs": {
+    "LedCount": 710,
+    "SimulationMode": true
+  }
+}
+```
+
+### Simulator Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/simulator/status` | GET | Check if simulation mode is enabled |
+| `/leds` | GET | Get current LED state (colors for all 710 LEDs) |
+| `/leds/stream` | GET | Server-Sent Events stream for real-time LED updates |
+
+### Web Interface
+
+When the server is running, navigate to `/simulator` in the web interface to see a visual representation of your staircase with real-time LED updates.
+
+---
+
+## 🎬 GIF Preview Generation
+
+Generate animated GIF previews of LED shows for documentation and PR reviews.
+
+### Preview Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/animation/{show}/preview` | GET | Generate GIF preview for a built-in animation |
+| `/scenes/{sceneId}/preview` | GET | Generate GIF preview for a custom scene |
+
+### Animation Preview Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `frames` | int | 60 | Number of frames to capture |
+| `delay` | int | 50 | Delay between frames in milliseconds |
+| `color` | string | - | Hex color code (e.g., `FF0000`) |
+| `blankColor` | string | - | Secondary color for theatre chase |
+
+### Scene Preview Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `maxFrames` | int | 100 | Maximum frames to include |
+| `speed` | double | 1.0 | Speed multiplier (2.0 = 2x faster) |
+
+### Example URLs
+
+```bash
+# Knight Rider animation preview
+http://localhost:5001/animation/knightrider/preview
+
+# Rainbow animation with 100 frames
+http://localhost:5001/animation/rainbow/preview?frames=100
+
+# Color wipe with custom color
+http://localhost:5001/animation/colorwipe/preview?color=00FF00
+
+# Custom scene preview
+http://localhost:5001/scenes/1/preview?speed=1.5
+```
+
+---
+
+## 🚀 PR Workflow: Adding New Shows
+
+**IMPORTANT**: When creating a PR that adds new LED shows or animations, always include a GIF preview so reviewers can see how the animation looks.
+
+### Steps for Adding a New Show
+
+1. **Create your scene** using the API:
+   ```bash
+   curl -X POST 'http://localhost:5001/scenes' \
+     -H 'Content-Type: application/json' \
+     -d '{"name": "my_new_show"}'
+   ```
+
+2. **Add frames** to your scene (see examples above)
+
+3. **Generate a GIF preview**:
+   ```bash
+   # For custom scenes:
+   curl -o my_new_show.gif 'http://localhost:5001/scenes/{sceneId}/preview'
+   
+   # For built-in animations:
+   curl -o animation_preview.gif 'http://localhost:5001/animation/{name}/preview'
+   ```
+
+4. **Include the GIF in your PR description**:
+   ```markdown
+   ## New Animation: My New Show
+   
+   This PR adds a new staircase animation called "my_new_show".
+   
+   ### Preview
+   ![my_new_show](./previews/my_new_show.gif)
+   
+   ### Description
+   This animation creates a wave effect from bottom to top...
+   ```
+
+5. **Store preview GIFs** in the `example-shows/` directory for reference
+
+### Copilot Instructions
+
+When asked to create a new LED show:
+
+1. ✅ Create the scene and frames via API
+2. ✅ Test the animation using the simulator (`/simulator`)
+3. ✅ Generate a GIF preview using `/animation/{name}/preview` or `/scenes/{id}/preview`
+4. ✅ Save the GIF to `example-shows/` directory
+5. ✅ Include the GIF preview in the PR description
+6. ✅ Document any special parameters or effects
+
+### Embedding GIF in PR (GitHub)
+
+You can directly reference the preview endpoint in your PR if the server is running:
+
+```markdown
+![Animation Preview](http://localhost:5001/animation/my_show/preview)
+```
+
+Or download and commit the GIF:
+```bash
+curl -o example-shows/my_show.gif 'http://localhost:5001/animation/my_show/preview?frames=60'
+```
+
+---
+
 ## 🔗 Quick Links
 
 - Swagger UI: `http://<ip>:5001/docs`
 - All Shows: `GET /shows`
 - Stop Animation: Start a new one (it cancels the previous)
+- Simulator: `http://<ip>:5001/simulator`
+- GIF Preview: `http://<ip>:5001/animation/{show}/preview`

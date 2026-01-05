@@ -28,6 +28,14 @@ export default defineConfig({
       '/animation': {
         target: 'http://localhost:5001',
         changeOrigin: true
+      },
+      '/leds': {
+        target: 'http://localhost:5001',
+        changeOrigin: true
+      },
+      '/simulator': {
+        target: 'http://localhost:5001',
+        changeOrigin: true
       }
     }
   },
