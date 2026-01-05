@@ -14,9 +14,26 @@ builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => 
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+// Add CORS policy for frontend development
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 builder.Services.AddDbContext<LedDbContext>();
 var app = builder.Build();
+
+// Enable CORS
+app.UseCors();
+
+// Serve static files from wwwroot (for production frontend)
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseSwagger(); // Serves the Swagger JSON
 app.UseSwaggerUI(options =>
@@ -216,6 +233,9 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
 
     return Results.Ok();
 });
+
+// Fallback route for SPA - serve index.html for unmatched routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

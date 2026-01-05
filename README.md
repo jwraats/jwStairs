@@ -8,6 +8,7 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
 
 ## Features
 - API for LED control.
+- **Web-based frontend** for easy control of animations and scenes.
 - Animations that are from dotnet iot + some custom.
 - Options to create your own scenes.
 
@@ -19,10 +20,34 @@ JW.Stairs is an API-driven project for controlling LED lights on staircases, alo
 ## Software Requirements
 
 - .NET 10.0 (Optional for self-contained deployment)
+- Node.js 20+ (for frontend development)
 - Home Assistant (for integration)
 - GLIBC 2.34 or later (Debian 12 Bookworm or newer)
 
 ## Setup
+
+### Frontend Development
+
+The frontend is built with Vue.js 3 and Vite. To run it in development mode:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173` and will proxy API requests to the backend at `http://localhost:5001`.
+
+### Building for Production
+
+To build the frontend for production:
+
+```bash
+cd frontend
+npm run build
+```
+
+Copy the built files from `frontend/dist` to `JW.Stairs/wwwroot` to serve them with the backend.
 
 ### Raspberry Pi Configuration
 
