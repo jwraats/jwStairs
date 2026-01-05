@@ -14,14 +14,26 @@ builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => 
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// Add CORS policy for frontend development
+// Add CORS policy for frontend
+// In production, configure allowed origins in appsettings.json under "AllowedCorsOrigins"
+var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (allowedOrigins != null && allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            // Default: allow any origin for local network access (typical for IoT devices)
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
     });
 });
 

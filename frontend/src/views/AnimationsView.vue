@@ -17,6 +17,25 @@ const colorOrders = ['RGB', 'RBG', 'GRB', 'GBR', 'BRG', 'BGR']
 const colorAnimations = ['color', 'colorwipe']
 const dualColorAnimations = ['theatrechase']
 
+// Show icon mapping
+const showIcons = {
+  knightrider: '🚗',
+  knightrider_green: '🚗',
+  knightrider_blue: '🚗',
+  theatrechase: '🎭',
+  rainbow: '🌈',
+  colorwipe: '🎨',
+  color: '🔴'
+}
+
+function getShowIcon(show) {
+  return showIcons[show] || '✨'
+}
+
+function formatShowName(show) {
+  return show.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+}
+
 function needsColor(show) {
   return colorAnimations.includes(show) || dualColorAnimations.includes(show)
 }
@@ -138,25 +157,6 @@ onMounted(() => {
     </section>
   </div>
 </template>
-
-<script>
-function getShowIcon(show) {
-  const icons = {
-    knightrider: '🚗',
-    knightrider_green: '🚗',
-    knightrider_blue: '🚗',
-    theatrechase: '🎭',
-    rainbow: '🌈',
-    colorwipe: '🎨',
-    color: '🔴'
-  }
-  return icons[show] || '✨'
-}
-
-function formatShowName(show) {
-  return show.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
-</script>
 
 <style scoped>
 .animations-view {
