@@ -70,8 +70,6 @@ var ledCount = jwStairsSettings.LedCount;
 Animations? effects = new Animations(new Ws2812b(spi, ledCount), ledCount);
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-app.MapGet("/", () => "Leds!");
-
 app.MapGet("/scenes", async (LedDbContext db) => await db.Scenes.Select(s => new ApiScene() { Id = s.Id, Name = s.Name }).ToListAsync());
 
 app.MapGet("/scenes/{id}", async (LedDbContext db, int id) =>

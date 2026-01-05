@@ -27,10 +27,15 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl wget zip git libicu72 libssl3 nodejs npm
+          apt-get install -y curl wget zip git libicu72 libssl3
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Build frontend
         run: |
@@ -93,10 +98,15 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl wget zip git libicu76 libssl3 nodejs npm
+          apt-get install -y curl wget zip git libicu76 libssl3
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Build frontend
         run: |
