@@ -32,6 +32,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Copy frontend to wwwroot
+        run: |
+          mkdir -p JW.Stairs/wwwroot
+          cp -r frontend/dist/. JW.Stairs/wwwroot/
+
       - name: Install .NET 10 SDK
         run: |
           curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
@@ -86,6 +102,22 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Copy frontend to wwwroot
+        run: |
+          mkdir -p JW.Stairs/wwwroot
+          cp -r frontend/dist/. JW.Stairs/wwwroot/
 
       - name: Install .NET 10 SDK
         run: |

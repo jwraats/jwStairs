@@ -14,9 +14,38 @@ builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => 
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+// Add CORS policy for frontend
+// In production, configure allowed origins in appsettings.json under "AllowedCorsOrigins"
+var allowedOrigins = builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        if (allowedOrigins != null && allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            // Default: allow any origin for local network access (typical for IoT devices)
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+    });
+});
 
 builder.Services.AddDbContext<LedDbContext>();
 var app = builder.Build();
+
+// Enable CORS
+app.UseCors();
+
+// Serve static files from wwwroot (for production frontend)
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseSwagger(); // Serves the Swagger JSON
 app.UseSwaggerUI(options =>
@@ -40,8 +69,6 @@ using SpiDevice spi = SpiDevice.Create(settings);
 var ledCount = jwStairsSettings.LedCount;
 Animations? effects = new Animations(new Ws2812b(spi, ledCount), ledCount);
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-
-app.MapGet("/", () => "Leds!");
 
 app.MapGet("/scenes", async (LedDbContext db) => await db.Scenes.Select(s => new ApiScene() { Id = s.Id, Name = s.Name }).ToListAsync());
 
@@ -216,6 +243,9 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
 
     return Results.Ok();
 });
+
+// Fallback route for SPA - serve index.html for unmatched routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
