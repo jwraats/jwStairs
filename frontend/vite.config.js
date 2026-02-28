@@ -19,7 +19,12 @@ export default defineConfig({
     proxy: {
       '/scenes': {
         target: 'http://localhost:5001',
-        changeOrigin: true
+        changeOrigin: true,
+        bypass(req) {
+          if (req.headers.accept?.includes('text/html')) {
+            return req.url
+          }
+        }
       },
       '/shows': {
         target: 'http://localhost:5001',
