@@ -34,13 +34,19 @@ src/
 
 Main control panel for LED animations. Includes brightness slider, primary/secondary color pickers, color order selector (RGB, RBG, GRB, GBR, BRG, BGR), repeat toggle, and a turn-off button. Displays available animation shows as a card grid.
 
+![Animations View](https://github.com/user-attachments/assets/1e025735-c45d-4efa-abfc-9b768919261d)
+
 ### ScenesView (`/scenes`)
 
 Lists saved scenes with options to create, edit, play, and delete. The create form allows naming new scenes via inline input.
 
+![Scenes View](https://github.com/user-attachments/assets/48585bd9-6f7c-455e-ade9-d1c46dfbaaea)
+
 ### SceneDetailView (`/scenes/:id`)
 
 Displays scene metadata (ID, name, frame count) and a list of frames with LED color previews.
+
+![Scene Detail View](https://github.com/user-attachments/assets/2b759445-8643-4afd-ab29-6550e96e2cc3)
 
 ## Getting Started
 
