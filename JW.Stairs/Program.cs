@@ -4,11 +4,28 @@ using Iot.Device.Ws28xx;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Text.Json.Serialization;
+using System.Reflection;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "JW Stairs LED Controller",
+        Version = "v1",
+        Description = "REST API for controlling WS2812B LED strips on a smart staircase. "
+            + "Manage scenes with animation frames, play built-in effects, or create custom light shows. "
+            + "The staircase has 710 LEDs across 14 steps (LED indices 0–709)."
+    });
+
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+        options.IncludeXmlComments(xmlPath);
+});
 builder.Services.AddMemoryCache();
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => 
@@ -70,7 +87,12 @@ var ledCount = jwStairsSettings.LedCount;
 Animations? effects = new Animations(new Ws2812b(spi, ledCount), ledCount);
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-app.MapGet("/scenes", async (LedDbContext db) => await db.Scenes.Select(s => new ApiScene() { Id = s.Id, Name = s.Name }).ToListAsync());
+app.MapGet("/scenes", async (LedDbContext db) => await db.Scenes.Select(s => new ApiScene() { Id = s.Id, Name = s.Name }).ToListAsync())
+    .WithName("GetScenes")
+    .WithTags("Scenes")
+    .WithSummary("Get all scenes")
+    .WithDescription("Returns a list of all saved scenes. Each scene can contain multiple animation frames.")
+    .Produces<List<ApiScene>>(StatusCodes.Status200OK);
 
 app.MapGet("/scenes/{id}", async (LedDbContext db, int id) =>
 {
@@ -78,7 +100,13 @@ app.MapGet("/scenes/{id}", async (LedDbContext db, int id) =>
     if (item == null) return Results.NotFound();
     var apiItem = new ApiScene() { Id = item.Id, Name = item.Name };
     return Results.Ok(apiItem);
-});
+})
+    .WithName("GetScene")
+    .WithTags("Scenes")
+    .WithSummary("Get a scene by ID")
+    .WithDescription("Returns a single scene by its unique identifier.")
+    .Produces<ApiScene>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapPost("/scenes", async (LedDbContext db, ApiScene apiItem) =>
 {
@@ -90,7 +118,12 @@ app.MapPost("/scenes", async (LedDbContext db, ApiScene apiItem) =>
     await db.SaveChangesAsync();
     apiItem.Id = item.Id;
     return Results.Created($"/scenes/{item.Id}", apiItem);
-});
+})
+    .WithName("CreateScene")
+    .WithTags("Scenes")
+    .WithSummary("Create a new scene")
+    .WithDescription("Creates a new scene with the given name. The scene ID is auto-generated. After creation, add frames to it using the Frames endpoints.")
+    .Produces<ApiScene>(StatusCodes.Status201Created);
 
 app.MapPost("/scenes/{sceneId}/frame", async (IMemoryCache memoryCache, LedDbContext db, int sceneId, ApiFrame apiItem) =>
 {
@@ -99,7 +132,15 @@ app.MapPost("/scenes/{sceneId}/frame", async (IMemoryCache memoryCache, LedDbCon
     memoryCache.Remove(sceneItem.Name);
 
     return await SaveSceneFrame(db, apiItem, sceneId);
-});
+})
+    .WithName("AddFrame")
+    .WithTags("Frames")
+    .WithSummary("Add a single frame to a scene")
+    .WithDescription("Adds one animation frame to the specified scene. Each frame defines LED colors and timing. "
+        + "The orderNr must be unique within the scene. If leds are omitted, all LEDs default to off.")
+    .Produces<ApiFrame>(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapPost("/scenes/{sceneId}/frames", async (IMemoryCache memoryCache, LedDbContext db, int sceneId, List<ApiFrame> apiItems) =>
 {
@@ -114,7 +155,15 @@ app.MapPost("/scenes/{sceneId}/frames", async (IMemoryCache memoryCache, LedDbCo
             return result;
     }
     return Results.Created($"/scenes/{sceneItem.Id}/frames", null);
-});
+})
+    .WithName("AddFrames")
+    .WithTags("Frames")
+    .WithSummary("Add multiple frames to a scene")
+    .WithDescription("Adds multiple animation frames to the specified scene in a single request. "
+        + "Each frame's orderNr must be unique within the scene. Stops on the first validation error.")
+    .Produces(StatusCodes.Status201Created)
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapGet("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId) =>
 {
@@ -133,7 +182,13 @@ app.MapGet("/scenes/{sceneId}/frames", async (LedDbContext db, int sceneId) =>
     }).ToListAsync();
     if (frameItems == null) return Results.NotFound();
     return Results.Ok(frameItems);
-});
+})
+    .WithName("GetFrames")
+    .WithTags("Frames")
+    .WithSummary("Get all frames for a scene")
+    .WithDescription("Returns all animation frames for the specified scene, ordered by orderNr. Each frame includes its LED color data.")
+    .Produces<List<ApiFrame>>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapGet("/scenes/{sceneId}/frames/{orderNr}", async (LedDbContext db, int sceneId, int orderNr) =>
 {
@@ -150,7 +205,13 @@ app.MapGet("/scenes/{sceneId}/frames/{orderNr}", async (LedDbContext db, int sce
     }).ToList() ?? new List<ApiLed>();
     var apiItem = new ApiFrame() { OrderNr = frameItem.OrderNr, Leds = apiLeds, WaitTillNextFrame = frameItem.WaitTillNextFrame };
     return Results.Ok(apiItem);
-});
+})
+    .WithName("GetFrame")
+    .WithTags("Frames")
+    .WithSummary("Get a specific frame by order number")
+    .WithDescription("Returns a single frame from the specified scene, identified by its orderNr.")
+    .Produces<ApiFrame>(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapPut("/scenes/{id}", async (LedDbContext db, int id, ApiScene apiItem) =>
 {
@@ -161,7 +222,13 @@ app.MapPut("/scenes/{id}", async (LedDbContext db, int id, ApiScene apiItem) =>
 
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+})
+    .WithName("UpdateScene")
+    .WithTags("Scenes")
+    .WithSummary("Update a scene")
+    .WithDescription("Updates the name of an existing scene.")
+    .Produces(StatusCodes.Status204NoContent)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapDelete("/scenes/{id}", async (LedDbContext db, int id) =>
 {
@@ -171,7 +238,13 @@ app.MapDelete("/scenes/{id}", async (LedDbContext db, int id) =>
     db.Scenes.Remove(item);
     await db.SaveChangesAsync();
     return Results.Ok();
-});
+})
+    .WithName("DeleteScene")
+    .WithTags("Scenes")
+    .WithSummary("Delete a scene")
+    .WithDescription("Permanently deletes a scene and all its associated frames and LED data.")
+    .Produces(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapGet("/shows", async (LedDbContext db) =>
 {
@@ -186,7 +259,12 @@ app.MapGet("/shows", async (LedDbContext db) =>
     };
     shows.AddRange(await db.Scenes.Select(s => s.Name).ToListAsync());
     return shows;
-});
+})
+    .WithName("GetShows")
+    .WithTags("Shows")
+    .WithSummary("List all available shows")
+    .WithDescription("Returns a list of all available animations, including built-in effects (knightrider, rainbow, etc.) and custom saved scenes.")
+    .Produces<List<string>>(StatusCodes.Status200OK);
 
 // !! ========= Animations ========= !!
 app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db, string show, string? color, string? blankColor, int percentage = 100, bool repeat = false, ColorOrder colorOrder = ColorOrder.RGB) =>
@@ -242,7 +320,23 @@ app.MapGet("/animation/{show}", async (IMemoryCache memoryCache, LedDbContext db
     }
 
     return Results.Ok();
-});
+})
+    .WithName("PlayAnimation")
+    .WithTags("Animations")
+    .WithSummary("Play an animation or scene")
+    .WithDescription("Plays a built-in animation or a custom saved scene on the LED strip. "
+        + "Any currently running animation is stopped first.\n\n"
+        + "**Built-in animations:** knightrider, knightrider_green, knightrider_blue, theatrechase, rainbow, colorwipe, color\n\n"
+        + "**Parameters:**\n"
+        + "- **show**: Animation name or custom scene name\n"
+        + "- **color**: Hex color without # (e.g. `FF0000` for red). Required for: theatrechase, colorwipe, color\n"
+        + "- **blankColor**: Secondary hex color without #. Required for: theatrechase\n"
+        + "- **percentage**: Speed control (1-100+). 100 = normal speed, 50 = half speed, 200 = double speed\n"
+        + "- **repeat**: Loop the animation continuously until another animation is started\n"
+        + "- **colorOrder**: LED color channel order (RGB, RBG, GRB, GBR, BRG, BGR). Default: RGB")
+    .Produces(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status404NotFound);
 
 // Fallback route for SPA - serve index.html for unmatched routes
 app.MapFallbackToFile("index.html");
