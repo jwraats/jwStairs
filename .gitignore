@@ -454,3 +454,10 @@ FodyWeavers.xsd
 
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
+
+### Frontend ###
+# Playwright test artifacts
+frontend/e2e/screenshots/
+frontend/playwright-report/
+frontend/test-results/
+frontend/dist/
